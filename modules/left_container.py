@@ -1,64 +1,61 @@
 import PyQt6.QtWidgets as widgets
-import PyQt6.QtGui as QtGui
+import PyQt6.QtGui as gui
 import PyQt6.QtCore as core
 import PyQt6.QtWebEngineWidgets as WebEngine
 
-import io
-import folium
-
+from .weather_content import Weather_Content
 
 class LeftContainer(widgets.QFrame):
     def __init__(self, parent):
         super().__init__(parent)
         
         self.setFixedSize(370, 800)
-        self.setStyleSheet("background-color: red")
+        self.setStyleSheet("background-color: green")
         
-        self.open_modal_button = widgets.QPushButton(parent = self, text = "Открыть окно")
-        self.open_modal_button.setGeometry(50,50,150,40)
-        self.open_modal_button.clicked.connect(self.open_modal)
-
-    def open_modal(self):
-
-        main_window = self.window()
+        self.BUTTON_TOOGLE = False #флажок для переключения иконки
         
-        self.MODAL = widgets.QWidget(main_window)
-        self.MODAL.setGeometry(10,10, 790, 688)
-        self.MODAL.setStyleSheet("background-color: white")
-        modal_layout = widgets.QVBoxLayout()
-        modal_layout.setAlignment(core.Qt.AlignmentFlag.AlignTop)
+        button_frame = widgets.QFrame(parent = self)
+        button_frame.setFixedSize(330, 44)
+        button_frame.setStyleSheet("background-color: pink")
+        left_container_layout = widgets.QVBoxLayout()
+        self.setLayout(left_container_layout)
+        left_container_layout.addWidget(button_frame)
+        left_container_layout.setAlignment(core.Qt.AlignmentFlag.AlignTop)
         
-        # scroll = QScrollArea()
-        # scroll.setWidgetResizable(True)
-
+        theme_button = widgets.QPushButton(parent = button_frame)
+        theme_button.setFixedSize(52, 24)
+        theme_button.setIconSize(core.QSize(52,24))
+        theme_button.setStyleSheet("border: none")
+        button_layout = widgets.QHBoxLayout()
+        button_frame.setLayout(button_layout)
+        button_layout.addWidget(theme_button)
+        button_layout.setAlignment(core.Qt.AlignmentFlag.AlignRight)
+        button_icon = gui.QIcon("media/title_bar/Dark_theme_button.svg")
+        theme_button.setIcon(button_icon)
+        
+        def icon_change():
+            if self.BUTTON_TOOGLE == True:
+                button_icon_1 = gui.QIcon("media/title_bar/Dark_theme_button.svg")
+                theme_button.setIcon(button_icon_1)
+                self.BUTTON_TOOGLE = False
+            elif self.BUTTON_TOOGLE == False:
+                button_icon_2 = gui.QIcon("media/title_bar/Light_theme_button.svg")
+                theme_button.setIcon(button_icon_2)
+                self.BUTTON_TOOGLE = True
+        
+        theme_button.clicked.connect(icon_change)
         
         
         
-        self.MODAL.setLayout(modal_layout)
+        scroll_area = widgets.QScrollArea(parent = self)
+        left_container_layout.addWidget(scroll_area)
+        scroll_frame = widgets.QFrame(parent = scroll_area)
+        scroll_area.setWidget(scroll_frame)
+        scroll_area.setWidgetResizable(True)
+        scroll_layout = widgets.QVBoxLayout()
+        scroll_frame.setLayout(scroll_layout)
         
-        header_frame = widgets.QFrame(parent = self.MODAL)
-        frame_layout = widgets.QHBoxLayout()
-        frame_layout.setAlignment(core.Qt.AlignmentFlag.AlignRight)
-        header_frame.setLayout(frame_layout)
-        header_frame.setFixedSize(742, 28)
-        modal_layout.addWidget(header_frame)
-        header_frame.setStyleSheet("background-color: cyan")
         
-        close_button = widgets.QPushButton(parent = header_frame)
-        frame_layout.addWidget(close_button)
-        close_button.setFixedSize(24, 24)
-        
-        icon = QtGui.QIcon("media/close.svg")
-        close_button.setIcon(icon)
-        close_button.clicked.connect(self.MODAL.hide)
-        
-        data = io.BytesIO()
-
-        map = folium.Map(location = (50, 50))
-        
-        map.save(data,close_file = False)
-
-        self.MODAL.show()
-        web_engine_view = WebEngine.QWebEngineView(parent = self.MODAL)
-        web_engine_view.setFixedSize(289,256)
-        modal_layout.addWidget(web_engine_view)
+        for i in range(15):
+            card = Weather_Content(parent = scroll_frame)
+            scroll_layout.addWidget(card)

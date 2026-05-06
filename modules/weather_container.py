@@ -8,7 +8,7 @@ class WeatherContainer(widgets.QFrame):
         super().__init__(parent)
 
         self.setFixedSize(828, 800)
-        self.setStyleSheet("background-color: green")
+        self.setStyleSheet("background-color: yellow")
 
         self.WEATHER_CONTRINER_LAYOUT = widgets.QVBoxLayout(self)
         self.setLayout(self.WEATHER_CONTRINER_LAYOUT)
