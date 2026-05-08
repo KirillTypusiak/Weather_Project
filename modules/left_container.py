@@ -10,13 +10,16 @@ class LeftContainer(widgets.QFrame):
         super().__init__(parent)
         
         self.setFixedSize(370, 800)
-        self.setStyleSheet("background-color: green")
+        self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2)")
         
         self.BUTTON_TOOGLE = False #флажок для переключения иконки
         
         button_frame = widgets.QFrame(parent = self)
         button_frame.setFixedSize(330, 44)
-        button_frame.setStyleSheet("background-color: pink")
+        button_frame.setStyleSheet("""
+            background: transparent;
+        """)
+        
         left_container_layout = widgets.QVBoxLayout()
         self.setLayout(left_container_layout)
         left_container_layout.addWidget(button_frame)

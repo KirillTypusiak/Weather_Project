@@ -16,7 +16,7 @@ class Header(widgets.QFrame):
         self.setLayout(layout)
         
         close_button = widgets.QPushButton(parent=self)
-        close_icon = gui.QIcon("media/title_bar/Close_Button.svg")
+        close_icon = gui.QIcon("media/title_bar/Close_Button_Hover.svg")
         close_button.setIcon(close_icon)
         layout.addWidget(close_button)
         close_button.setStyleSheet("border:none")
@@ -24,7 +24,7 @@ class Header(widgets.QFrame):
         close_button.clicked.connect(self.window().close)
         
         minimized_button = widgets.QPushButton(parent=self)
-        minimized_icon = gui.QIcon("media/title_bar/Minimize_Button.svg")
+        minimized_icon = gui.QIcon("media/title_bar/Minimize_Button_Hover.svg")
         minimized_button.setIcon(minimized_icon)
         layout.addWidget(minimized_button)
         minimized_button.setStyleSheet("border:none")
@@ -32,7 +32,7 @@ class Header(widgets.QFrame):
         minimized_button.clicked.connect(self.window().showMinimized)
 
         max_button = widgets.QPushButton(parent=self)
-        max_close_icon = gui.QIcon("media/title_bar/Maximize_Button.svg")
+        max_close_icon = gui.QIcon("media/title_bar/Maximize_Button_Hover.svg")
         max_button.setIcon(max_close_icon)
         layout.addWidget(max_button)
         max_button.setStyleSheet("border:none")
