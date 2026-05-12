@@ -59,6 +59,22 @@ class LeftContainer(widgets.QFrame):
         scroll_frame.setLayout(scroll_layout)
         
         
-        for i in range(15):
-            card = Weather_Content(parent = scroll_frame)
-            scroll_layout.addWidget(card)
+        
+        card1 = Weather_Content(parent = scroll_frame, city_name = "Dnipro")
+        card2 = Weather_Content(parent = scroll_frame, city_name = "Bratislava")
+        card3 = Weather_Content(parent = scroll_frame, city_name = "Berlin")
+        card4 = Weather_Content(parent = scroll_frame, city_name = "Boston")
+        card5 = Weather_Content(parent = scroll_frame, city_name = "Rome")
+        card6 = Weather_Content(parent = scroll_frame, city_name = "Kyiv")
+        card7 = Weather_Content(parent = scroll_frame, city_name = "Amsterdam")
+        card8 = Weather_Content(parent = scroll_frame, city_name = "Warsow")
+        
+        scroll_layout.addWidget(card1)
+        scroll_layout.addWidget(card2)
+        scroll_layout.addWidget(card3)
+        scroll_layout.addWidget(card4)
+        scroll_layout.addWidget(card5)
+        scroll_layout.addWidget(card6)
+        scroll_layout.addWidget(card7)
+        scroll_layout.addWidget(card8)
+        

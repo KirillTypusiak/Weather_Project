@@ -28,7 +28,7 @@ class WeatherContainer(widgets.QFrame):
 
         response = request_sender("Dnipro")
 
-        print(response)
+        print(json.dumps(response, indent = 4))
 
         if response["cod"] != 404:
             label = widgets.QLabel(self.TOP_FRAME, text = str(response["main"]["temp"]))
