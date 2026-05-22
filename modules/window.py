@@ -5,7 +5,7 @@ from .header import Header
 
 from .app import application
 from .left_container import LeftContainer
-from .weather_container import WeatherContainer
+from .right_container import RightContainer
 
 
 class MainWindow(widgets.QMainWindow):
@@ -13,6 +13,8 @@ class MainWindow(widgets.QMainWindow):
         super().__init__()
 
         self.setWindowFlags(core.Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(core.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setStyleSheet("background: transparent; border: none;")
         
         window_width = 1200
         window_height = 800
@@ -29,33 +31,32 @@ class MainWindow(widgets.QMainWindow):
         self.setGeometry(center_x, center_y, window_width, window_height)
         self.setWindowTitle("Project")
         
-        content_container = widgets.QFrame(parent = self)
-        content_layout = widgets.QVBoxLayout()
+        content_container = widgets.QWidget(self)
+        content_container.setStyleSheet(
+            "background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #4a90e2, stop:1 #1c3c72);"
+            "border: none;"
+        )
+        self.setCentralWidget(content_container)
 
+        content_layout = widgets.QVBoxLayout(content_container)
         content_layout.setSpacing(0)
-        content_layout.setContentsMargins(0,0,0,0)
+        content_layout.setContentsMargins(0, 0, 0, 0)
 
-        content_container.setLayout(content_layout)
-        
-        content_container.setFixedSize(window_width,window_height)
         header = Header(parent = content_container)
         content_layout.addWidget(header)
         
         central_widget = widgets.QWidget(content_container)
-        central_widget.setFixedSize(1200,800  )
+        central_widget.setStyleSheet("background: transparent;")
         content_layout.addWidget(central_widget)
         
-        center_widget_layout = widgets.QHBoxLayout()
+        center_widget_layout = widgets.QHBoxLayout(central_widget)
         center_widget_layout.setSpacing(0)
         center_widget_layout.setContentsMargins(0, 0, 0, 0)
         
-        
-        central_widget.setLayout(center_widget_layout)
-        
         self.LEFT_CONTAINER = LeftContainer(parent = central_widget)
-        self.WEATHER_CONTAINER = WeatherContainer(parent = central_widget)
+        self.WEATHER_CONTAINER = RightContainer(parent = central_widget, city_name = "Dnipro") #позже сделать определение города по локации
         
         center_widget_layout.addWidget(self.LEFT_CONTAINER)
-        center_widget_layout.addWidget(self.WEATHER_CONTAINER)
+        center_widget_layout.addWidget(self.WEATHER_CONTAINER, stretch = 1)
 
 main_window = MainWindow()

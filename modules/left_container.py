@@ -9,8 +9,10 @@ class LeftContainer(widgets.QFrame):
     def __init__(self, parent):
         super().__init__(parent)
         
-        self.setFixedSize(370, 800)
+        self.setFixedWidth(370)
         self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2)")
+        
+        self.selected_card = None  # текущая выбранная карточка
         
         self.BUTTON_TOOGLE = False #флажок для переключения иконки
         
@@ -57,24 +59,19 @@ class LeftContainer(widgets.QFrame):
         scroll_area.setWidgetResizable(True)
         scroll_layout = widgets.QVBoxLayout()
         scroll_frame.setLayout(scroll_layout)
+        scroll_area.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setStyleSheet("background: transparent; border: none")
         
+        def on_card_select(card):
+            if self.selected_card and self.selected_card is not card:
+                self.selected_card.set_selected(False)  # снимаем выделение со старой
+            card.set_selected(True)
+            self.selected_card = card
+
+        cities = ["Dnipro", "Bratislava", "Berlin", "Boston", "Rome", "Kyiv", "Amsterdam", "Warsow"]
+        for city in cities:
+            card = Weather_Content(parent=scroll_frame, city_name=city, on_select=on_card_select)
+            scroll_layout.addWidget(card)
         
-        
-        card1 = Weather_Content(parent = scroll_frame, city_name = "Dnipro")
-        card2 = Weather_Content(parent = scroll_frame, city_name = "Bratislava")
-        card3 = Weather_Content(parent = scroll_frame, city_name = "Berlin")
-        card4 = Weather_Content(parent = scroll_frame, city_name = "Boston")
-        card5 = Weather_Content(parent = scroll_frame, city_name = "Rome")
-        card6 = Weather_Content(parent = scroll_frame, city_name = "Kyiv")
-        card7 = Weather_Content(parent = scroll_frame, city_name = "Amsterdam")
-        card8 = Weather_Content(parent = scroll_frame, city_name = "Warsow")
-        
-        scroll_layout.addWidget(card1)
-        scroll_layout.addWidget(card2)
-        scroll_layout.addWidget(card3)
-        scroll_layout.addWidget(card4)
-        scroll_layout.addWidget(card5)
-        scroll_layout.addWidget(card6)
-        scroll_layout.addWidget(card7)
-        scroll_layout.addWidget(card8)
         

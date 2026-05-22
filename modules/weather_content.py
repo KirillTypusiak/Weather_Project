@@ -2,18 +2,20 @@ import PyQt6.QtCore as core
 import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
 import datetime
+import json
 
 from utils import request_sender
 
 
 class Weather_Content(widgets.QFrame):
-    def __init__(self, parent, city_name):
+    def __init__(self, parent, city_name, on_select = None):
         super().__init__(parent)
 
-        self.IF_SELECTED = False
+        self.on_select = on_select  # callback из LeftContainer
 
-        self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA); background: transparent; border: 1px solid black; border-radius: 10px ")
-        self.setFixedSize(300,90)
+        # self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA); background: transparent; border: 1px solid black; border-radius: 10px ")
+        self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
+        self.setFixedSize(320,90)
         
         main_layout = widgets.QHBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -79,21 +81,12 @@ class Weather_Content(widgets.QFrame):
             left_card_layout.addWidget(label2)
             left_card_layout.addWidget(label3)
             
-            def set_selected():
-
-                self.IF_SELECTED = not self.IF_SELECTED
-
-                if self.IF_SELECTED:
-                    self.setStyleSheet("background-color: rgba(0, 0, 0, 0.1);border: 1px solid black; border-radius: 10px ")
-                else:
-                    self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA); background: transparent; border: 1px solid black; border-radius: 10px ")
-            
             
             card_button = widgets.QPushButton(self)
-            card_button.setFixedSize(300, 90)
+            card_button.setFixedSize(320, 90)
             card_button.setStyleSheet("border-radius: 10px")
-            card_button.clicked.connect(set_selected)
-        
+            card_button.clicked.connect(lambda: self.on_select(self) if self.on_select else None)
+            card_button.raise_()
 
 
 
@@ -129,4 +122,19 @@ class Weather_Content(widgets.QFrame):
             right_card_layout.addWidget(label1)
             right_card_layout.addWidget(label2)
             
-        
+            bottom_line = widgets.QFrame(self)
+
+            bottom_line.setGeometry(10, 88, 300, 1)
+
+            bottom_line.setStyleSheet("""
+                background-color: rgba(255,255,255,0.15);
+                border: none;
+            """)    
+            
+    def set_selected(self, selected: bool):
+        if selected:
+            self.setStyleSheet("background-color: rgba(0, 0, 0, 0.2); border: none; border-radius: 10px")
+        else:
+            self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
+
+        # print(json.dumps(response, indent = 4))
