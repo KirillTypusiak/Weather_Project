@@ -34,6 +34,7 @@ class Weather_Content(widgets.QFrame):
         main_layout.addWidget(right_card, stretch = 1)
         
         response = request_sender(city_name)
+        # print(json.dumps(response, indent = 4))
         
         left_card_layout = widgets.QVBoxLayout()
         left_card_layout.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
@@ -137,4 +138,3 @@ class Weather_Content(widgets.QFrame):
         else:
             self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
 
-        # print(json.dumps(response, indent = 4))

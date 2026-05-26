@@ -20,7 +20,7 @@ class Header(widgets.QFrame):
 
         left_header = widgets.QFrame()
         left_header.setFixedWidth(370)
-        #тут изменил
+        
         left_header.setStyleSheet("""
             background: qlineargradient(
                 x1:1, y1:0,
@@ -65,7 +65,7 @@ class Header(widgets.QFrame):
         max_button.setIcon(gui.QIcon("media/title_bar/Maximize_Button_Hover.svg"))
         max_button.setStyleSheet("border:none;")
         left_layout.addWidget(max_button)
-        #тут что бы окно возвращалось 
+        
         def toggle_window():
             if self.window().isMaximized():
                 self.window().showNormal()

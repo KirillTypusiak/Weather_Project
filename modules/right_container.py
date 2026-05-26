@@ -1,6 +1,7 @@
 import PyQt6.QtCore as core
 import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
+from datetime import datetime
 
 from utils import request_sender
 
@@ -36,10 +37,53 @@ class RightContainer(widgets.QFrame):
         left_center_container.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
         
         left_center_container_layout = widgets.QVBoxLayout()
-        left_center_container_layout.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
-        left_center_container_layout.setContentsMargins(0, 0, 0, 0)
+        left_center_container_layout.setContentsMargins(10, 10, 0, 10)
         left_center_container_layout.setSpacing(12)
         left_center_container.setLayout(left_center_container_layout)
+        
+        top_label_widget = widgets.QFrame(parent = left_center_container)
+        top_label_widget.setFixedHeight(27)
+        top_label_widget.setStyleSheet("background: transparent; border: none")
+        left_center_container_layout.addWidget(top_label_widget)
+        top_label_widget_layout = widgets.QHBoxLayout()
+        top_label_widget_layout.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
+        top_label_widget_layout.setContentsMargins(10, 10, 0, 0)
+        top_label_widget_layout.setSpacing(10)
+        top_label_widget.setLayout(top_label_widget_layout)
+        left_center_container_layout.addWidget(top_label_widget)
+        
+        navigation_icon = gui.QIcon("media/Navigation.png")
+        pixmap = gui.QPixmap(navigation_icon.pixmap(core.QSize(16, 16)))
+        navigation_label = widgets.QLabel(parent = top_label_widget)
+        navigation_label.setPixmap(pixmap)
+        navigation_label.setStyleSheet("background: transparent; border: none")
+        top_label_widget_layout.addWidget(navigation_label)
+        
+        top_label = widgets.QLabel(top_label_widget, text = "Поточна позиція")
+        top_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
+        top_label.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 16px;
+            font-weight: 500;
+            vertical-align: middle;
+            style: medium;
+            border: none;
+            background: transparent;
+        """)
+        top_label_widget_layout.addWidget(top_label)
+        
+        top_line = widgets.QFrame(parent = left_center_container)
+        
+        left_center_container_layout.addWidget(top_line, alignment = core.Qt.AlignmentFlag.AlignHCenter)
+        
+        
+
+        top_line.setFixedSize(358, 1)
+
+        top_line.setStyleSheet("""
+                background-color: rgba(255,255,255,0.30);
+                border: none;
+            """)    
         
         if response["cod"] != 404:
             label1 = widgets.QLabel(left_center_container, text = str(response["name"]))
@@ -62,6 +106,7 @@ class RightContainer(widgets.QFrame):
             weather_widget.setStyleSheet("background: transparent; border: none")
             left_center_container_layout.addWidget(weather_widget)
             weather_widget_layout = widgets.QHBoxLayout()
+            weather_widget_layout.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             weather_widget_layout.setContentsMargins(0, 0, 0, 0)
             weather_widget_layout.setSpacing(0)
             weather_widget.setLayout(weather_widget_layout)
@@ -72,14 +117,13 @@ class RightContainer(widgets.QFrame):
             icon_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             weather_widget_layout.addWidget(icon_label)
             icon_path = None
-            weather_widget_layout.addWidget(icon_label)
 
             icon_path = None
             if response["weather"][0]["main"] == "Clear":
                 icon_path = "media/Sun.png"
-            elif response["weather"][0]["main"] == "Clouds" and response["weather"][0]["description"] == "scattered clouds":
-                icon_path = "media/Partially_cloudy.png"
-            elif response["weather"][0]["main"] == "Clouds" and response["weather"][0]["description"] == "broken clouds":
+            # elif response["weather"][0]["main"] == "Clouds" and response["weather"][0]["description"] == "scattered clouds":
+            #     icon_path = "media/Partially_cloudy.png"
+            elif response["weather"][0]["main"] == "Clouds":
                 icon_path = "media/Cloudy.png"
             elif response["weather"][0]["main"] == "Rain":
                 icon_path = "media/Rainy.png"
@@ -92,6 +136,7 @@ class RightContainer(widgets.QFrame):
                 icon_label.setScaledContents(True)
             
             temp_label = widgets.QLabel(weather_widget, text = str(int(response["main"]["temp"] - 273.3)) + "°")
+            temp_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             temp_label.setStyleSheet("""
                                     font-family: Roboto;
                                     font-size: 74px;
@@ -133,6 +178,7 @@ class RightContainer(widgets.QFrame):
                                     style: medium;
                                     border: none;
                                     background: transparent;
+                                    color: rgba(255,255,255,0.8);
                                     """)
             left_center_container_layout.addWidget(label4)
 
@@ -149,8 +195,118 @@ class RightContainer(widgets.QFrame):
         center_frame_layout.addWidget(right_center_container)
         
         
+        right_center_container_layout = widgets.QVBoxLayout()
+        right_center_container_layout.setAlignment(core.Qt.AlignmentFlag.AlignTop)
+        right_center_container_layout.setContentsMargins(20, 20, 20, 15)
+        right_center_container_layout.setSpacing(12)
+        right_center_container.setLayout(right_center_container_layout)
+        
+        top_right_label = widgets.QLabel(right_center_container, text = "Сьогодні")
+        top_right_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
+        top_right_label.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 16px;
+            font-weight: 500;
+            vertical-align: middle;
+            style: medium;
+            border: none;
+            background: transparent;
+        """)
+        right_center_container_layout.addWidget(top_right_label)
+        
+        top_right_line = widgets.QFrame(parent = right_center_container)
+        right_center_container_layout.addWidget(top_right_line, alignment = core.Qt.AlignmentFlag.AlignCenter)
+        top_right_line.setFixedSize(358, 1)
+        top_right_line.setStyleSheet("""
+                background-color: rgba(255,255,255,0.30);
+                border: none;
+            """)
+        
+        right_label_layout = widgets.QHBoxLayout()
+        right_label_layout.setContentsMargins(0, 0, 0, 0)
+        right_label_layout.setSpacing(0)
+        
+        right_label_widget = widgets.QFrame(parent = right_center_container)
+        right_label_widget.setFixedHeight(44)
+        right_label_widget.setStyleSheet("background: transparent; border: none;")
+        right_label_widget.setLayout(right_label_layout)
+        right_center_container_layout.addWidget(right_label_widget)
+        
+        
+        DAYS = {
+            0: "Понеділок",
+            1: "Вівторок",
+            2: "Середа",
+            3: "Четвер",
+            4: "П'ятниця",
+            5: "Субота",
+            6: "Неділя"
+        }
+        
+        now = datetime.now()
+        day_name = DAYS[now.weekday()]      # визначаємо назву дня тижня
+        current_date = now.strftime("%d.%m.%Y")     # отримуємо поточну дату у форматі день.місяць.рік
+        
+        day_label = widgets.QLabel(right_center_container, text = day_name)
+        day_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
+        day_label.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 24px;
+            font-weight: 500;
+            vertical-align: middle;
+            style: medium;
+            border: none;
+            background: transparent;
+            """)
+        right_label_layout.addWidget(day_label)
+        
+        date_label = widgets.QLabel(right_center_container, text = current_date)
+        date_label.setAlignment(core.Qt.AlignmentFlag.AlignRight)
+        date_label.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 24px;
+            font-weight: 500;
+            vertical-align: middle;
+            style: medium;
+            border: none;
+            background: transparent;
+            """)
+        right_label_layout.addWidget(date_label)
+        
+        
+        clock_frame = widgets.QFrame(parent = right_center_container)
+        clock_frame.setFixedSize(168, 168)
+        clock_frame.setStyleSheet("background: transparent; border: none;")
+        right_center_container_layout.addWidget(clock_frame, alignment = core.Qt.AlignmentFlag.AlignHCenter)
+        
+        clock_frame_layout = widgets.QStackedLayout(clock_frame)  # стек — иконка и время поверх друг друга
+        clock_frame_layout.setStackingMode(widgets.QStackedLayout.StackingMode.StackAll)
+        clock_frame.setLayout(clock_frame_layout)
 
-
+        
+        current_time = datetime.now().strftime("%H:%M")
+        time_label = widgets.QLabel(parent = clock_frame, text = current_time)
+        time_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
+        time_label.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 29px;
+            font-weight: 500;
+            vertical-align: middle; 
+            style: medium;
+            border: none;
+            background: transparent;
+            """)
+        clock_frame_layout.addWidget(time_label)
+        
+        clock_icon = gui.QIcon("media/Clock.png")
+        pixmap = gui.QPixmap(clock_icon.pixmap(core.QSize(168, 168)))
+        clock_label = widgets.QLabel(parent = clock_frame)
+        clock_label.setPixmap(pixmap)
+        clock_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
+        clock_label.setStyleSheet("background: transparent; border: none;")
+        clock_frame_layout.addWidget(clock_label)
+        
+        
         self.FOOTER = widgets.QFrame(parent = self)
         self.FOOTER.setMinimumHeight(364)
         self.FOOTER.setStyleSheet("background: transparent")
