@@ -53,10 +53,13 @@ class MainWindow(widgets.QMainWindow):
         center_widget_layout.setSpacing(0)
         center_widget_layout.setContentsMargins(0, 0, 0, 0)
         
-        self.LEFT_CONTAINER = LeftContainer(parent = central_widget)
+        self.LEFT_CONTAINER = LeftContainer(parent = central_widget, on_city_selected=self.on_city_selected)
         self.WEATHER_CONTAINER = RightContainer(parent = central_widget, city_name = "Dnipro") #позже сделать определение города по локации
         
         center_widget_layout.addWidget(self.LEFT_CONTAINER)
         center_widget_layout.addWidget(self.WEATHER_CONTAINER, stretch = 1)
+
+    def on_city_selected(self, city_name):
+        self.WEATHER_CONTAINER.update_city(city_name)
 
 main_window = MainWindow()

@@ -6,13 +6,14 @@ import PyQt6.QtWebEngineWidgets as WebEngine
 from .weather_content import Weather_Content
 
 class LeftContainer(widgets.QFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, on_city_selected=None):
         super().__init__(parent)
         
         self.setFixedWidth(370)
         self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2)")
         
         self.selected_card = None  # текущая выбранная карточка
+        self.on_city_selected = on_city_selected
         
         self.BUTTON_TOOGLE = False #флажок для переключения иконки
         
@@ -63,11 +64,13 @@ class LeftContainer(widgets.QFrame):
         scroll_area.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll_area.setStyleSheet("background: transparent; border: none")
         
-        def on_card_select(card):
+        def on_card_select(city_name, card):
             if self.selected_card and self.selected_card is not card:
                 self.selected_card.set_selected(False)  # снимаем выделение со старой
             card.set_selected(True)
             self.selected_card = card
+            if self.on_city_selected:
+                self.on_city_selected(city_name)
 
         cities = ["Dnipro", "Bratislava", "Berlin", "Boston", "Rome", "Kyiv", "Amsterdam", "Warsow"]
         for city in cities:

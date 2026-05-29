@@ -34,7 +34,11 @@ class Weather_Content(widgets.QFrame):
         main_layout.addWidget(right_card, stretch = 1)
         
         response = request_sender(city_name)
-        # print(json.dumps(response, indent = 4))
+        self.timezone_offset = response.get("timezone", 0) if isinstance(response, dict) else 0
+        self.clock_timer = core.QTimer(self)
+        self.clock_timer.timeout.connect(self.update_city_time)
+        self.clock_timer.start(1000)
+        print(json.dumps(response, indent = 4))
         
         left_card_layout = widgets.QVBoxLayout()
         left_card_layout.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
@@ -54,10 +58,8 @@ class Weather_Content(widgets.QFrame):
                 
             """)
             
-            time_difference = response["timezone"]
-            current_time = datetime.datetime.now(datetime.timezone.utc)
-            local_time = datetime.timezone(datetime.timedelta(seconds = time_difference))
-            city_time = current_time.astimezone(local_time).strftime("%H:%M")
+            current_time = self.city_datetime()
+            city_time = current_time.strftime("%H:%M")
             label2 = widgets.QLabel(left_card, text = str(city_time))
             label2.setFixedSize(100, 14)
             label2.setStyleSheet(
@@ -81,12 +83,12 @@ class Weather_Content(widgets.QFrame):
             left_card_layout.addWidget(label1)
             left_card_layout.addWidget(label2)
             left_card_layout.addWidget(label3)
-            
+            self.city_time_label = label2
             
             card_button = widgets.QPushButton(self)
             card_button.setFixedSize(320, 90)
             card_button.setStyleSheet("border-radius: 10px")
-            card_button.clicked.connect(lambda: self.on_select(self) if self.on_select else None)
+            card_button.clicked.connect(lambda _, city=city_name, card=self: self.on_select(city, card) if self.on_select else None)
             card_button.raise_()
 
 
@@ -131,7 +133,16 @@ class Weather_Content(widgets.QFrame):
                 background-color: rgba(255,255,255,0.15);
                 border: none;
             """)    
-            
+
+    def city_datetime(self):
+        utc_now = datetime.datetime.now(datetime.timezone.utc)
+        local_tz = datetime.timezone(datetime.timedelta(seconds=self.timezone_offset))
+        return utc_now.astimezone(local_tz)
+
+    def update_city_time(self):
+        if hasattr(self, 'city_time_label'):
+            self.city_time_label.setText(self.city_datetime().strftime("%H:%M"))
+
     def set_selected(self, selected: bool):
         if selected:
             self.setStyleSheet("background-color: rgba(0, 0, 0, 0.2); border: none; border-radius: 10px")

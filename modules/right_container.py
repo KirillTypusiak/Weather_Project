@@ -1,16 +1,19 @@
 import PyQt6.QtCore as core
 import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+
+from .Horizontal_bar_card import HourlyForecastWidget
+from .temperature_chart import TemperatureChartWidget
 
 from utils import request_sender
 
 class RightContainer(widgets.QFrame):
     def __init__(self, parent, city_name):
         super().__init__(parent)
-        
-        response = request_sender(city_name)
 
+        self.city_name = city_name
         self.setMinimumWidth(830)
         self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
         self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA);")
@@ -20,7 +23,57 @@ class RightContainer(widgets.QFrame):
         self.WEATHER_CONTAINER_LAYOUT.setAlignment(core.Qt.AlignmentFlag.AlignTop)
         self.WEATHER_CONTAINER_LAYOUT.setContentsMargins(15, 15, 15, 15)
         self.WEATHER_CONTAINER_LAYOUT.setSpacing(14)
-        
+
+        self.timezone_offset = 0
+        self.DAYS = {
+            0: "Понеділок",
+            1: "Вівторок",
+            2: "Середа",
+            3: "Четвер",
+            4: "П'ятниця",
+            5: "Субота",
+            6: "Неділя"
+        }
+        self.clock_timer = core.QTimer(self)
+        self.clock_timer.timeout.connect(self.update_clock)
+
+        self.update_city(city_name)
+
+    def clear_layout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+            elif item.layout():
+                self.clear_layout(item.layout())
+
+    def city_datetime(self):
+        utc_now = datetime.now(timezone.utc)
+        tz = timezone(timedelta(seconds=self.timezone_offset))
+        return utc_now.astimezone(tz)
+
+    def update_clock(self):
+        if hasattr(self, 'time_label'):
+            city_now = self.city_datetime()
+            self.time_label.setText(city_now.strftime("%H:%M"))
+        if hasattr(self, 'date_label'):
+            city_now = self.city_datetime()
+            self.date_label.setText(city_now.strftime("%d.%m.%Y"))
+        if hasattr(self, 'day_label'):
+            city_now = self.city_datetime()
+            self.day_label.setText(self.DAYS[city_now.weekday()])
+
+    def update_city(self, city_name):
+        self.city_name = city_name
+        self.clear_layout(self.WEATHER_CONTAINER_LAYOUT)
+        response = request_sender(city_name)
+        self.timezone_offset = response.get("timezone", 0) if isinstance(response, dict) else 0
+        self.build_ui(response)
+        if not self.clock_timer.isActive():
+            self.clock_timer.start(1000)
+        self.update_clock()
+
+    def build_ui(self, response):
         self.TOP_FRAME = widgets.QFrame(parent = self)
         self.TOP_FRAME.setFixedHeight(36)
         self.TOP_FRAME.setStyleSheet("background-color: pink")
@@ -35,12 +88,12 @@ class RightContainer(widgets.QFrame):
         left_center_container.setStyleSheet("background-color: rgba(0, 0, 0, 0.1); border-radius: 10px ")
         left_center_container.setMinimumWidth(390)
         left_center_container.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
-        
+
         left_center_container_layout = widgets.QVBoxLayout()
-        left_center_container_layout.setContentsMargins(10, 10, 0, 10)
+        left_center_container_layout.setContentsMargins(10, 10, 20, 10)
         left_center_container_layout.setSpacing(12)
         left_center_container.setLayout(left_center_container_layout)
-        
+
         top_label_widget = widgets.QFrame(parent = left_center_container)
         top_label_widget.setFixedHeight(27)
         top_label_widget.setStyleSheet("background: transparent; border: none")
@@ -51,16 +104,17 @@ class RightContainer(widgets.QFrame):
         top_label_widget_layout.setSpacing(10)
         top_label_widget.setLayout(top_label_widget_layout)
         left_center_container_layout.addWidget(top_label_widget)
-        
+
         navigation_icon = gui.QIcon("media/Navigation.png")
         pixmap = gui.QPixmap(navigation_icon.pixmap(core.QSize(16, 16)))
         navigation_label = widgets.QLabel(parent = top_label_widget)
         navigation_label.setPixmap(pixmap)
         navigation_label.setStyleSheet("background: transparent; border: none")
         top_label_widget_layout.addWidget(navigation_label)
-        
+
         top_label = widgets.QLabel(top_label_widget, text = "Поточна позиція")
         top_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
+        top_label.setFixedHeight(27)
         top_label.setStyleSheet("""
             font-family: Roboto;
             font-size: 16px;
@@ -71,20 +125,17 @@ class RightContainer(widgets.QFrame):
             background: transparent;
         """)
         top_label_widget_layout.addWidget(top_label)
-        
+
         top_line = widgets.QFrame(parent = left_center_container)
-        
-        left_center_container_layout.addWidget(top_line, alignment = core.Qt.AlignmentFlag.AlignHCenter)
-        
-        
-
-        top_line.setFixedSize(358, 1)
-
+        left_center_container_layout.addWidget(top_line)
+        top_line.setFixedHeight(1)
+        top_line.setMinimumWidth(358)
+        top_line.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed)
         top_line.setStyleSheet("""
                 background-color: rgba(255,255,255,0.30);
                 border: none;
             """)    
-        
+
         if response["cod"] != 404:
             label1 = widgets.QLabel(left_center_container, text = str(response["name"]))
             label1.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
@@ -100,7 +151,7 @@ class RightContainer(widgets.QFrame):
                                     background: transparent;
                                     """)
             left_center_container_layout.addWidget(label1)
-            
+
             weather_widget = widgets.QFrame(parent = left_center_container)
             weather_widget.setFixedHeight(87)
             weather_widget.setStyleSheet("background: transparent; border: none")
@@ -110,7 +161,7 @@ class RightContainer(widgets.QFrame):
             weather_widget_layout.setContentsMargins(0, 0, 0, 0)
             weather_widget_layout.setSpacing(0)
             weather_widget.setLayout(weather_widget_layout)
-            
+
             icon_label = widgets.QLabel(parent = weather_widget)
             icon_label.setFixedSize(87, 87)
             icon_label.setStyleSheet("background: transparent; border: none;")
@@ -118,11 +169,10 @@ class RightContainer(widgets.QFrame):
             weather_widget_layout.addWidget(icon_label)
             icon_path = None
 
-            icon_path = None
             if response["weather"][0]["main"] == "Clear":
                 icon_path = "media/Sun.png"
-            # elif response["weather"][0]["main"] == "Clouds" and response["weather"][0]["description"] == "scattered clouds":
-            #     icon_path = "media/Partially_cloudy.png"
+            elif response["weather"][0]["main"] == "Thunderstorm":
+                icon_path = "media/Thunderstorm.png"
             elif response["weather"][0]["main"] == "Clouds":
                 icon_path = "media/Cloudy.png"
             elif response["weather"][0]["main"] == "Rain":
@@ -134,7 +184,7 @@ class RightContainer(widgets.QFrame):
                 pixmap = gui.QPixmap(icon_path)
                 icon_label.setPixmap(pixmap)
                 icon_label.setScaledContents(True)
-            
+
             temp_label = widgets.QLabel(weather_widget, text = str(int(response["main"]["temp"] - 273.3)) + "°")
             temp_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             temp_label.setStyleSheet("""
@@ -150,7 +200,7 @@ class RightContainer(widgets.QFrame):
                                     horizontal-align: center;
                                     """)
             weather_widget_layout.addWidget(temp_label)
-            
+
             label3 = widgets.QLabel(left_center_container, text = str(response["weather"][0]["main"]))
             label3.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             label3.setStyleSheet("""
@@ -165,7 +215,7 @@ class RightContainer(widgets.QFrame):
                                     background: transparent;
                                     """)
             left_center_container_layout.addWidget(label3)
-            
+
             label4 = widgets.QLabel(left_center_container, text = f"Макс.:{str(int(response["main"]["temp_max"] - 273.3)) + "°"}, Мін.:{str(int(response["main"]["temp_min"] - 273.3)) + "°"}")
             label4.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             label4.setStyleSheet("""
@@ -182,19 +232,17 @@ class RightContainer(widgets.QFrame):
                                     """)
             left_center_container_layout.addWidget(label4)
 
-
         right_center_container = widgets.QFrame(parent = self.CENTER_FRAME)
         right_center_container.setStyleSheet("background-color: rgba(0, 0, 0, 0.1); border-radius: 10px ")
         right_center_container.setMinimumWidth(390)
         right_center_container.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
-        
+
         center_frame_layout = widgets.QHBoxLayout(self.CENTER_FRAME)
         center_frame_layout.setContentsMargins(0, 0, 0, 0)
         center_frame_layout.setSpacing(15)
-        center_frame_layout.addWidget(left_center_container)
-        center_frame_layout.addWidget(right_center_container)
-        
-        
+        center_frame_layout.addWidget(left_center_container, stretch = 1)
+        center_frame_layout.addWidget(right_center_container, stretch = 1)
+
         right_center_container_layout = widgets.QVBoxLayout()
         right_center_container_layout.setAlignment(core.Qt.AlignmentFlag.AlignTop)
         right_center_container_layout.setContentsMargins(20, 20, 20, 15)
@@ -213,43 +261,35 @@ class RightContainer(widgets.QFrame):
             background: transparent;
         """)
         right_center_container_layout.addWidget(top_right_label)
-        
+
         top_right_line = widgets.QFrame(parent = right_center_container)
-        right_center_container_layout.addWidget(top_right_line, alignment = core.Qt.AlignmentFlag.AlignCenter)
-        top_right_line.setFixedSize(358, 1)
+        right_center_container_layout.addWidget(top_right_line)
+        top_right_line.setFixedHeight(1)
+        top_right_line.setMinimumWidth(358)
+        top_right_line.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed)
         top_right_line.setStyleSheet("""
                 background-color: rgba(255,255,255,0.30);
                 border: none;
             """)
-        
+
         right_label_layout = widgets.QHBoxLayout()
         right_label_layout.setContentsMargins(0, 0, 0, 0)
         right_label_layout.setSpacing(0)
-        
+
         right_label_widget = widgets.QFrame(parent = right_center_container)
+        right_label_layout.setAlignment(core.Qt.AlignmentFlag.AlignTop)
         right_label_widget.setFixedHeight(44)
         right_label_widget.setStyleSheet("background: transparent; border: none;")
         right_label_widget.setLayout(right_label_layout)
         right_center_container_layout.addWidget(right_label_widget)
-        
-        
-        DAYS = {
-            0: "Понеділок",
-            1: "Вівторок",
-            2: "Середа",
-            3: "Четвер",
-            4: "П'ятниця",
-            5: "Субота",
-            6: "Неділя"
-        }
-        
-        now = datetime.now()
-        day_name = DAYS[now.weekday()]      # визначаємо назву дня тижня
-        current_date = now.strftime("%d.%m.%Y")     # отримуємо поточну дату у форматі день.місяць.рік
-        
-        day_label = widgets.QLabel(right_center_container, text = day_name)
-        day_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
-        day_label.setStyleSheet("""
+
+        city_now = self.city_datetime()
+        day_name = self.DAYS[city_now.weekday()]
+        current_date = city_now.strftime("%d.%m.%Y")
+
+        self.day_label = widgets.QLabel(right_center_container, text = day_name)
+        self.day_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
+        self.day_label.setStyleSheet("""
             font-family: Roboto;
             font-size: 24px;
             font-weight: 500;
@@ -258,11 +298,11 @@ class RightContainer(widgets.QFrame):
             border: none;
             background: transparent;
             """)
-        right_label_layout.addWidget(day_label)
-        
-        date_label = widgets.QLabel(right_center_container, text = current_date)
-        date_label.setAlignment(core.Qt.AlignmentFlag.AlignRight)
-        date_label.setStyleSheet("""
+        right_label_layout.addWidget(self.day_label)
+
+        self.date_label = widgets.QLabel(right_center_container, text = current_date)
+        self.date_label.setAlignment(core.Qt.AlignmentFlag.AlignRight)
+        self.date_label.setStyleSheet("""
             font-family: Roboto;
             font-size: 24px;
             font-weight: 500;
@@ -271,23 +311,21 @@ class RightContainer(widgets.QFrame):
             border: none;
             background: transparent;
             """)
-        right_label_layout.addWidget(date_label)
-        
-        
+        right_label_layout.addWidget(self.date_label)
+
         clock_frame = widgets.QFrame(parent = right_center_container)
         clock_frame.setFixedSize(168, 168)
         clock_frame.setStyleSheet("background: transparent; border: none;")
         right_center_container_layout.addWidget(clock_frame, alignment = core.Qt.AlignmentFlag.AlignHCenter)
-        
-        clock_frame_layout = widgets.QStackedLayout(clock_frame)  # стек — иконка и время поверх друг друга
+
+        clock_frame_layout = widgets.QStackedLayout(clock_frame)
         clock_frame_layout.setStackingMode(widgets.QStackedLayout.StackingMode.StackAll)
         clock_frame.setLayout(clock_frame_layout)
 
-        
-        current_time = datetime.now().strftime("%H:%M")
-        time_label = widgets.QLabel(parent = clock_frame, text = current_time)
-        time_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
-        time_label.setStyleSheet("""
+        current_time = self.city_datetime().strftime("%H:%M")
+        self.time_label = widgets.QLabel(parent = clock_frame, text = current_time)
+        self.time_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
+        self.time_label.setStyleSheet("""
             font-family: Roboto;
             font-size: 29px;
             font-weight: 500;
@@ -296,8 +334,8 @@ class RightContainer(widgets.QFrame):
             border: none;
             background: transparent;
             """)
-        clock_frame_layout.addWidget(time_label)
-        
+        clock_frame_layout.addWidget(self.time_label)
+
         clock_icon = gui.QIcon("media/Clock.png")
         pixmap = gui.QPixmap(clock_icon.pixmap(core.QSize(168, 168)))
         clock_label = widgets.QLabel(parent = clock_frame)
@@ -305,33 +343,104 @@ class RightContainer(widgets.QFrame):
         clock_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
         clock_label.setStyleSheet("background: transparent; border: none;")
         clock_frame_layout.addWidget(clock_label)
-        
-        
+
         self.FOOTER = widgets.QFrame(parent = self)
         self.FOOTER.setMinimumHeight(364)
         self.FOOTER.setStyleSheet("background: transparent")
         self.WEATHER_CONTAINER_LAYOUT.addWidget(self.FOOTER)
-        
+
         footer_layout = widgets.QVBoxLayout(self.FOOTER)
         footer_layout.setContentsMargins(0,0,0,0)
         footer_layout.setSpacing(15)
-        
 
         top_footer = widgets.QFrame()
-        top_footer.setMinimumHeight(150)
-
+        top_footer.setMinimumHeight(157)
         top_footer.setStyleSheet("""
             background-color: rgba(0,0,0,0.1);
             border-radius: 10px;
         """)
 
-        bottom_footer = widgets.QFrame()
-        bottom_footer.setMinimumHeight(190)
 
+
+        bottom_footer = widgets.QFrame()
+        bottom_footer.setMinimumHeight(197)
         bottom_footer.setStyleSheet("""
             background-color: rgba(0,0,0,0.1);
             border-radius: 10px;
         """)
 
+        bottom_footer_layout = widgets.QVBoxLayout()
+        #bottom_footer_layout.setContentsMargins(15, 15, 15, 15)
+        #bottom_footer_layout.setSpacing(10)
+        bottom_footer.setLayout(bottom_footer_layout)
+
         footer_layout.addWidget(top_footer)
         footer_layout.addWidget(bottom_footer)
+        
+        chart_title_label = widgets.QLabel("Прогноз на 12 годин")
+        chart_title_label.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 400;
+            color: white;
+            background: transparent;
+        """)
+        bottom_footer_layout.addWidget(chart_title_label)
+
+        chart_line = widgets.QFrame(parent=bottom_footer)
+        chart_line.setFixedHeight(1)
+        chart_line.setStyleSheet("""
+        background-color: rgba(255, 255, 255, 0.30); border: none;
+                                """)
+        bottom_footer_layout.addWidget(chart_line, alignment=core.Qt.AlignmentFlag.AlignTop)
+
+        chart = TemperatureChartWidget(
+        parent=bottom_footer,
+        city_name=self.city_name,
+        timezone_offset=self.timezone_offset,
+        )
+        bottom_footer_layout.addWidget(chart)
+
+        
+        top_footer_layout = widgets.QVBoxLayout()
+        top_footer_layout.setContentsMargins(15,15,15,15)
+        top_footer_layout.setSpacing(10)
+        top_footer.setLayout(top_footer_layout)
+
+        label5 = widgets.QLabel("Погода до кінця дня")
+        label5.setStyleSheet("""
+            font-family: Roboto;
+            font-size: 15px;
+            font-weight: 400;
+            color: white;
+            background: transparent;
+        """)
+
+        top_footer_layout.addWidget(label5, alignment = core.Qt.AlignmentFlag.AlignTop)
+
+        line = widgets.QFrame(parent = top_footer)
+        line.setFixedHeight(1)
+        line.setStyleSheet("""
+            background-color: rgba(255,255,255,0.3);
+            border: none;
+        """)
+        top_footer_layout.addWidget(line, alignment = core.Qt.AlignmentFlag.AlignTop)
+
+        # horizontal_scroll_bar = widgets.QScrollArea()
+        # horizontal_scroll_bar.setWidgetResizable(True)
+        # horizontal_scroll_bar.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # horizontal_scroll_bar.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # horizontal_scroll_bar.setStyleSheet("""
+        #     background-color: transparent;
+        #     border: none
+        # """)
+
+        
+        top_footer_scroll = HourlyForecastWidget(
+            parent=self.FOOTER,
+            city_name=self.city_name,      
+            timezone_offset=self.timezone_offset
+        )
+        top_footer_layout.addWidget(top_footer_scroll)
+        
+        
