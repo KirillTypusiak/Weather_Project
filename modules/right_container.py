@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from .Horizontal_bar_card import HourlyForecastWidget
 from .temperature_chart import TemperatureChartWidget
+from .top_frame import TopFrameWidget
 
 from utils import request_sender
 
@@ -38,6 +39,8 @@ class RightContainer(widgets.QFrame):
         self.clock_timer.timeout.connect(self.update_clock)
 
         self.update_city(city_name)
+        
+        
 
     def clear_layout(self, layout):
         while layout.count():
@@ -72,13 +75,38 @@ class RightContainer(widgets.QFrame):
         if not self.clock_timer.isActive():
             self.clock_timer.start(1000)
         self.update_clock()
+        # self.city_selected_callback()
+        
+    def set_search_callback(self, callback):
+        self._search_callback = callback
 
+    
     def build_ui(self, response):
-        self.TOP_FRAME = widgets.QFrame(parent = self)
-        self.TOP_FRAME.setFixedHeight(36)
-        self.TOP_FRAME.setStyleSheet("background-color: pink")
+        
+        self.TOP_FRAME = TopFrameWidget(parent=self)
         self.WEATHER_CONTAINER_LAYOUT.addWidget(self.TOP_FRAME)
+        
 
+        self.dropdown = widgets.QListWidget(self)
+        self.dropdown.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.dropdown.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        # placeholder = widgets.QListWidgetItem("Результати пошуку")
+        # placeholder.setForeground(gui.QColor(255, 255, 255, 120))
+        # placeholder.setFlags(core.Qt.ItemFlag.NoItemFlags)  # нельзя кликнуть
+        # self.dropdown.addItem(placeholder)
+        
+        
+        self.dropdown.setSpacing(5)
+        self.dropdown.setFixedWidth(261)
+        self.dropdown.setFixedHeight(200)
+        self.dropdown.setStyleSheet(
+            "background-color: rgba(0,0,0,0.2); border: none; border-radius: 10px;"
+        )
+        self.dropdown.hide()
+        self.dropdown.itemClicked.connect(self.TOP_FRAME.on_city_selected)
+        self.TOP_FRAME.set_dropdown(self.dropdown)
+        
         self.CENTER_FRAME = widgets.QFrame(parent=self)
         self.CENTER_FRAME.setMinimumHeight(303)
         self.CENTER_FRAME.setStyleSheet("background: transparent")
@@ -260,10 +288,10 @@ class RightContainer(widgets.QFrame):
             border: none;
             background: transparent;
         """)
-        right_center_container_layout.addWidget(top_right_label)
+        right_center_container_layout.addWidget(top_right_label, alignment = core.Qt.AlignmentFlag.AlignTop)
 
         top_right_line = widgets.QFrame(parent = right_center_container)
-        right_center_container_layout.addWidget(top_right_line)
+        right_center_container_layout.addWidget(top_right_line, alignment = core.Qt.AlignmentFlag.AlignTop)
         top_right_line.setFixedHeight(1)
         top_right_line.setMinimumWidth(358)
         top_right_line.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Fixed)
@@ -281,7 +309,7 @@ class RightContainer(widgets.QFrame):
         right_label_widget.setFixedHeight(44)
         right_label_widget.setStyleSheet("background: transparent; border: none;")
         right_label_widget.setLayout(right_label_layout)
-        right_center_container_layout.addWidget(right_label_widget)
+        right_center_container_layout.addWidget(right_label_widget, alignment = core.Qt.AlignmentFlag.AlignTop)
 
         city_now = self.city_datetime()
         day_name = self.DAYS[city_now.weekday()]
@@ -370,8 +398,6 @@ class RightContainer(widgets.QFrame):
         """)
 
         bottom_footer_layout = widgets.QVBoxLayout()
-        #bottom_footer_layout.setContentsMargins(15, 15, 15, 15)
-        #bottom_footer_layout.setSpacing(10)
         bottom_footer.setLayout(bottom_footer_layout)
 
         footer_layout.addWidget(top_footer)
@@ -425,16 +451,6 @@ class RightContainer(widgets.QFrame):
             border: none;
         """)
         top_footer_layout.addWidget(line, alignment = core.Qt.AlignmentFlag.AlignTop)
-
-        # horizontal_scroll_bar = widgets.QScrollArea()
-        # horizontal_scroll_bar.setWidgetResizable(True)
-        # horizontal_scroll_bar.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        # horizontal_scroll_bar.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        # horizontal_scroll_bar.setStyleSheet("""
-        #     background-color: transparent;
-        #     border: none
-        # """)
-
         
         top_footer_scroll = HourlyForecastWidget(
             parent=self.FOOTER,
@@ -442,5 +458,4 @@ class RightContainer(widgets.QFrame):
             timezone_offset=self.timezone_offset
         )
         top_footer_layout.addWidget(top_footer_scroll)
-        
         

@@ -58,8 +58,14 @@ class MainWindow(widgets.QMainWindow):
         
         center_widget_layout.addWidget(self.LEFT_CONTAINER)
         center_widget_layout.addWidget(self.WEATHER_CONTAINER, stretch = 1)
-
+        
+        self.WEATHER_CONTAINER.TOP_FRAME.city_selected.connect(
+                self.LEFT_CONTAINER.add_city_card
+            )
+        
     def on_city_selected(self, city_name):
         self.WEATHER_CONTAINER.update_city(city_name)
-
+        self.WEATHER_CONTAINER.TOP_FRAME.city_selected.connect(
+                    self.LEFT_CONTAINER.add_city_card
+        )
 main_window = MainWindow()

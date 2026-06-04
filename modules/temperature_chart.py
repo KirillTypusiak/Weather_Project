@@ -66,7 +66,7 @@ class TemperatureChartWidget(widgets.QFrame):
 
         tz = timezone(timedelta(seconds=timezone_offset))
 
-        # Берём первые 48 записей (≈24 ч при шаге 3 ч, или больше при почасовом)
+        # Берём первые 48 записей (при шаге в 3 часа это 6 дней)
         entries = data["list"][:48]
 
         for entry in entries:
@@ -102,6 +102,7 @@ class _TempBar(widgets.QWidget):
     BAR_W = 14          
     ICON_SIZE = 14      
     MAX_BAR_H = 100
+    ICON_ZONE_H = 20   # высота зоны для иконки (чтобы не было наложения на соседние столбцы)
 
     def __init__(self, temp: float, scale_min: int, scale_max: int,
         weather_main: str, time_str: str):
@@ -117,8 +118,15 @@ class _TempBar(widgets.QWidget):
         layout = widgets.QVBoxLayout(self)
         layout.setContentsMargins(3, 0, 3, 0)
         layout.setSpacing(2)
-        layout.setAlignment(core.Qt.AlignmentFlag.AlignHCenter | core.Qt.AlignmentFlag.AlignBottom)
+        layout.setAlignment(core.Qt.AlignmentFlag.AlignHCenter)
 
+        icon_container = widgets.QWidget()
+        icon_container.setFixedHeight(self.ICON_ZONE_H)
+        icon_container.setStyleSheet("background: transparent;")
+        icon_layout = widgets.QVBoxLayout(icon_container)
+        icon_layout.setContentsMargins(0, 0, 0, 0)
+        icon_layout.setAlignment(core.Qt.AlignmentFlag.AlignHCenter | core.Qt.AlignmentFlag.AlignVCenter)
+        
         # Иконка
         icon_lbl = widgets.QLabel()
         icon_lbl.setFixedSize(self.ICON_SIZE, self.ICON_SIZE)
@@ -132,12 +140,21 @@ class _TempBar(widgets.QWidget):
                 core.Qt.TransformationMode.SmoothTransformation,
             )
             icon_lbl.setPixmap(pm)
-        layout.addWidget(icon_lbl, alignment=core.Qt.AlignmentFlag.AlignHCenter)
+        icon_layout.addWidget(icon_lbl)
+        layout.addWidget(icon_container)
+        
+        bar_container = widgets.QWidget()
+        bar_container.setStyleSheet("background: transparent;")
+        bar_layout = widgets.QVBoxLayout(bar_container)
+        bar_layout.setContentsMargins(0, 0, 0, 0)
+        bar_layout.setAlignment(core.Qt.AlignmentFlag.AlignHCenter | core.Qt.AlignmentFlag.AlignBottom)
+
 
         # Столбец
         bar_h = self._calc_height()
         self.bar_label = _GradientBar(self.BAR_W, bar_h, temp, scale_min, scale_max)
-        layout.addWidget(self.bar_label, alignment=core.Qt.AlignmentFlag.AlignHCenter)
+        bar_layout.addWidget(self.bar_label, alignment=core.Qt.AlignmentFlag.AlignHCenter)
+        layout.addWidget(bar_container, stretch = 1)
 
     def _calc_height(self) -> int:
         span = self.scale_max - self.scale_min
@@ -196,7 +213,7 @@ class _ScaleWidget(widgets.QWidget):
         painter.setFont(font)
         painter.setPen(gui.QColor(255, 255, 255, 200))
 
-        h = 125
+        h = 100
         span = self.scale_max - self.scale_min
 
         for val in self.LABELS:
@@ -205,6 +222,6 @@ class _ScaleWidget(widgets.QWidget):
             ratio = (val - self.scale_min) / span
             y = int(h * (1.0 - ratio))
             text = f"{val}°"
-            painter.drawText(5, y + 5, text) 
+            painter.drawText(5, y + 32, text) 
 
         painter.end()

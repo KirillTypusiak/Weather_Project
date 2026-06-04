@@ -249,14 +249,14 @@ class HourlyForecastWidget(widgets.QFrame):
         now = datetime.now(tz)
         today = now.date()
 
-        # --- Збираємо hourly-карточки ---
+        # Збираємо hourly-карточки
         hourly_cards: list[tuple[datetime, widgets.QFrame]] = []
 
         for entry in data["list"]:
             dt_utc = datetime.fromtimestamp(entry["dt"], tz=timezone.utc)
             dt_local = dt_utc.astimezone(tz)
 
-            if dt_local.date() != today:
+            if dt_local > now + timedelta(hours = 36):
                 break
             if dt_local <= now:
                 continue
@@ -268,7 +268,7 @@ class HourlyForecastWidget(widgets.QFrame):
             card = HourlyCard(inner, time_str, temp, weather_main)
             hourly_cards.append((dt_local, card))
 
-        # --- Карточки сходу/заходу ---
+        # Карточки сходу/заходу
         city_info = data.get("city", {})
         sun_events: list[tuple[datetime, widgets.QFrame]] = []
 
@@ -277,12 +277,12 @@ class HourlyForecastWidget(widgets.QFrame):
             if ts:
                 dt_utc = datetime.fromtimestamp(ts, tz=timezone.utc)
                 dt_local = dt_utc.astimezone(tz)
-                if dt_local.date() == today and dt_local > now:
+                if dt_local > now and dt_local <= now + timedelta(hours = 36):
                     time_str = dt_local.strftime("%H:%M")
                     card = SunCard(inner, kind, time_str)
                     sun_events.append((dt_local, card))
 
-        # --- Об'єднуємо та сортуємо за часом ---
+        # Об'єднуємо та сортуємо за часом
         all_cards = sorted(hourly_cards + sun_events, key=lambda x: x[0])
 
         for _, card in all_cards:
