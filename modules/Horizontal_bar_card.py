@@ -45,7 +45,6 @@ class HourlyCard(widgets.QFrame):
             color: rgba(255,255,255,1);
             background: transparent;
             border: none;
-            letter-spacing: 0%;
             line-height: 100%;
         """)
         layout.addWidget(time_label)
@@ -74,7 +73,7 @@ class HourlyCard(widgets.QFrame):
             background: transparent;
             border: none;
             line-height: 100%;
-            letter-spacing: 0%;
+    
         """)
         layout.addWidget(temp_label)
 
@@ -111,7 +110,6 @@ class SunCard(widgets.QFrame):
             background: transparent;
             border: none;
             line-height: 100%;
-            letter-spacing: 0%;
         """)
         layout.addWidget(time_label)
 
@@ -142,7 +140,6 @@ class SunCard(widgets.QFrame):
             background: transparent;
             border: none;
             line-height: 100%;
-            letter-spacing: 0%;
         """)
         layout.addWidget(label)
         

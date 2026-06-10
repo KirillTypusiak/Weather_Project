@@ -7,7 +7,7 @@ from utils.request import request_sender
 from .weather_content import Weather_Content
 
 
-DEFAULT_CITIES = ["Dnipro", "Bratislava", "Berlin", "Boston", "Rome", "Kyiv", "Amsterdam", "Warsow"]
+DEFAULT_CITIES = ["Dnipro", "Bratislava"]
 
 
 class LeftContainer(widgets.QFrame):

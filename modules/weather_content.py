@@ -38,7 +38,7 @@ class Weather_Content(widgets.QFrame):
         self.clock_timer = core.QTimer(self)
         self.clock_timer.timeout.connect(self.update_city_time)
         self.clock_timer.start(1000)
-        print(json.dumps(response, indent = 4))
+        # print(json.dumps(response, indent = 4))
         
         left_card_layout = widgets.QVBoxLayout()
         left_card_layout.setAlignment(core.Qt.AlignmentFlag.AlignLeft)

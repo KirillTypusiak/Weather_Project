@@ -2,6 +2,7 @@ import PyQt6.QtCore as core
 import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
 
+from modules.modal import Modal
 from utils import request_cities
 
 
@@ -39,15 +40,36 @@ class TopFrameWidget(widgets.QFrame):
         settings_icon = gui.QIcon("media/Settings.png")
         pixmap = gui.QPixmap(settings_icon.pixmap(36, 36))
 
+
         settings_button = widgets.QPushButton(self)
+        self.settings_button = settings_button
         settings_button.setIcon(gui.QIcon(pixmap))
         settings_button.setIconSize(pixmap.size())
         settings_button.setFixedSize(36, 36)
-        settings_button.setStyleSheet(
-            "background: transparent; border: none; border-radius: 10px; padding: 0; margin: 0;"
-        )
+        settings_button.setStyleSheet("""
+                    QPushButton {
+                        background: transparent; 
+                        border: none; 
+                        border-radius: 18px;
+                        padding: 0; 
+                        margin: 0;
+                    }
+                    QPushButton:hover {
+                        background: rgba(255, 255, 255, 0.1);
+                    }
+                    QPushButton:pressed {
+                        background: rgba(255, 255, 255, 0.2);
+            }
+                """)
+
+        button_layout.addWidget(settings_button)
+
+
+
         settings_button.setContentsMargins(0, 0, 0, 0)
         button_layout.addWidget(settings_button)
+        settings_button.clicked.connect(self.open_settings_modal)
+        
 
         settings_label = widgets.QLabel("Налаштування", self)
         settings_label.setContentsMargins(0, 0, 0, 0)
@@ -56,8 +78,6 @@ class TopFrameWidget(widgets.QFrame):
             font-family: Roboto;
             font-size: 14px;
             font-weight: 500;
-            vertical-align: middle;
-            style: medium;
             border: none;
             background: transparent;
         """)
@@ -82,6 +102,15 @@ class TopFrameWidget(widgets.QFrame):
         """)
         top_frame_layout.addWidget(self.text_field, alignment=core.Qt.AlignmentFlag.AlignRight)
         self.text_field.textChanged.connect(self.on_text_changed)
+        
+    def open_settings_modal(self):
+        if not hasattr(self, '_modal') or self._modal is None:
+            self._modal = Modal(self.window())
+    
+        if self._modal.isVisible():
+            self._modal.close()
+        else:
+            self._modal.show_below_button(self.settings_button)
 
     def reposition_dropdown(self):
         if self.cities_list_widget == None:

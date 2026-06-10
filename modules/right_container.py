@@ -147,8 +147,6 @@ class RightContainer(widgets.QFrame):
             font-family: Roboto;
             font-size: 16px;
             font-weight: 500;
-            vertical-align: middle;
-            style: medium;
             border: none;
             background: transparent;
         """)
@@ -172,9 +170,6 @@ class RightContainer(widgets.QFrame):
                                     font-size: 44px;
                                     font-weight: 500;
                                     line-height: 100%;
-                                    letter-spacing: 0%;
-                                    vertical-align: middle;
-                                    style: medium;
                                     border: none;
                                     background: transparent;
                                     """)
@@ -220,9 +215,6 @@ class RightContainer(widgets.QFrame):
                                     font-size: 74px;
                                     font-weight: 500;
                                     line-height: 100%;
-                                    letter-spacing: 0%;
-                                    vertical-align: middle;
-                                    style: medium;
                                     border: none;
                                     background: transparent;
                                     horizontal-align: center;
@@ -236,9 +228,6 @@ class RightContainer(widgets.QFrame):
                                     font-size: 24px;
                                     font-weight: 500;
                                     line-height: 100%;
-                                    letter-spacing: 0%;
-                                    vertical-align: middle;
-                                    style: medium;
                                     border: none;
                                     background: transparent;
                                     """)
@@ -251,9 +240,6 @@ class RightContainer(widgets.QFrame):
                                     font-size: 16px;
                                     font-weight: 500;
                                     line-height: 100%;
-                                    letter-spacing: 0%;
-                                    vertical-align: middle;
-                                    style: medium;
                                     border: none;
                                     background: transparent;
                                     color: rgba(255,255,255,0.8);
@@ -283,8 +269,6 @@ class RightContainer(widgets.QFrame):
             font-family: Roboto;
             font-size: 16px;
             font-weight: 500;
-            vertical-align: middle;
-            style: medium;
             border: none;
             background: transparent;
         """)
@@ -321,8 +305,6 @@ class RightContainer(widgets.QFrame):
             font-family: Roboto;
             font-size: 24px;
             font-weight: 500;
-            vertical-align: middle;
-            style: medium;
             border: none;
             background: transparent;
             """)
@@ -334,8 +316,6 @@ class RightContainer(widgets.QFrame):
             font-family: Roboto;
             font-size: 24px;
             font-weight: 500;
-            vertical-align: middle;
-            style: medium;
             border: none;
             background: transparent;
             """)
@@ -357,8 +337,6 @@ class RightContainer(widgets.QFrame):
             font-family: Roboto;
             font-size: 29px;
             font-weight: 500;
-            vertical-align: middle; 
-            style: medium;
             border: none;
             background: transparent;
             """)

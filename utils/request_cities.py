@@ -13,7 +13,7 @@ def load_cities() -> None:
         data = response.json()
         for country in data["data"]:
             _all_cities.extend(country["cities"])
-        print(f"Завантажено {len(_all_cities)} міст")
+        # print(f"Завантажено {len(_all_cities)} міст")
     except Exception as err:
         print(f"Помилка завантаження міст: {err}")
 
