@@ -8,9 +8,7 @@ import json
 
 from utils import request_cities
 
-# ──────────────────────────────────────────────
 # Стили
-# ──────────────────────────────────────────────
 
 LABEL_STYLE = """
     font-family: Roboto;
@@ -93,9 +91,7 @@ SAVE_BTN_ACTIVE = """
 """
 
 
-# ──────────────────────────────────────────────
 # Хелперы
-# ──────────────────────────────────────────────
 
 def apply_placeholder_color(widget: widgets.QWidget):
     palette = widget.palette()
@@ -109,9 +105,7 @@ def make_label(parent, text: str) -> widgets.QLabel:
     return label
 
 
-# ──────────────────────────────────────────────
 # Выпадающий список (попап)
-# ──────────────────────────────────────────────
 
 class DropdownPopup(widgets.QFrame):
     item_selected = core.pyqtSignal(str)
@@ -146,9 +140,7 @@ class DropdownPopup(widgets.QFrame):
         self.hide()
 
 
-# ──────────────────────────────────────────────
 # Поле с поиском (страна / город)
-# ──────────────────────────────────────────────
 
 class SearchField(widgets.QFrame):
     value_selected = core.pyqtSignal(str)
@@ -205,9 +197,7 @@ class SearchField(widgets.QFrame):
         self.input.blockSignals(False)
 
 
-# ──────────────────────────────────────────────
 # Карточка города
-# ──────────────────────────────────────────────
 
 class CityCard(widgets.QFrame):
     clicked = core.pyqtSignal(str)
@@ -267,33 +257,55 @@ class CityCard(widgets.QFrame):
             self.clicked.emit(self.city_name)
 
 
-# ──────────────────────────────────────────────
 # Виджет "Додані міста"
-# ──────────────────────────────────────────────
 
-class AddedCitiesWidget(widgets.QFrame):
+class AddedCitiesWidget(widgets.QScrollArea):
     city_clicked = core.pyqtSignal(str)
     city_deleted = core.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setWidgetResizable(True)
+        self.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setStyleSheet("""
-            QFrame {
+            QScrollArea {
                 background: rgba(255, 255, 255, 0.05);
                 border-radius: 8px;
                 border: none;
             }
+            QScrollBar:vertical {
+                background: transparent;
+                width: 6px;
+                margin: 4px 2px;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(255, 255, 255, 0.25);
+                border-radius: 3px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: rgba(255, 255, 255, 0.4);
+            }
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                height: 0px;
+            }
         """)
+        
+        
 
-        root = widgets.QVBoxLayout(self)
-        root.setContentsMargins(0, 8, 0, 8)
-        root.setSpacing(0)
-
-        self.cards_layout = widgets.QVBoxLayout()
+        self._container = widgets.QWidget()
+        self._container.setStyleSheet("background: transparent; border: none;")
+        self._container.setFixedWidth(544)
+        self.cards_layout = widgets.QVBoxLayout(self._container)
         self.cards_layout.setSpacing(0)
-        self.cards_layout.setContentsMargins(0, 0, 0, 0)
-        root.addLayout(self.cards_layout)
+        self.cards_layout.setContentsMargins(0, 8, 0, 8)
+        self.cards_layout.addStretch()
 
+        self.setWidget(self._container)
+        self.setFixedWidth(544)
+        self.setFixedHeight(200)
         self._cards: dict[str, CityCard] = {}
 
     def add_city(self, city_name: str):
@@ -303,7 +315,7 @@ class AddedCitiesWidget(widgets.QFrame):
         card.clicked.connect(self.city_clicked)
         card.deleted.connect(self._remove_city)
         self._cards[city_name] = card
-        self.cards_layout.addWidget(card)
+        self.cards_layout.insertWidget(self.cards_layout.count() - 1, card)
 
     def _remove_city(self, city_name: str):
         card = self._cards.pop(city_name, None)
@@ -315,9 +327,7 @@ class AddedCitiesWidget(widgets.QFrame):
         return list(self._cards.keys())
 
 
-# ──────────────────────────────────────────────
 # Основной виджет
-# ──────────────────────────────────────────────
 
 # Утилита для получения стран из данных request_cities
 def _get_all_countries() -> list[str]:
@@ -362,15 +372,17 @@ def _geocode_city(city: str) -> tuple[float, float] | None:
 
 
 class CityFinder(widgets.QFrame):
-    def __init__(self, parent):
+    city_saved = core.pyqtSignal(str)
+    def __init__(self, parent, settings=None):
         super().__init__(parent)
         self.setFixedWidth(544)
 
-        self._settings = core.QSettings("MyApp", "CityFinder")
+        self._settings = settings or core.QSettings("MyApp", "WeatherApp")
         self._all_countries: list[str] = []
         self._cities_for_country: list[str] = []
         self._selected_country: str | None = None
         self._selected_city: str | None = None
+        
         
 
         root_layout = widgets.QVBoxLayout(self)
@@ -477,8 +489,7 @@ class CityFinder(widgets.QFrame):
         self._load_countries()
         self._restore_cities()
 
-    # ── Поиск ──────────────────────────────────
-
+    #Поиск
     def _search_country(self, text: str) -> list[str]:
         if len(text) < 1:
             return []
@@ -489,7 +500,7 @@ class CityFinder(widgets.QFrame):
             return []
         return [c for c in self._cities_for_country if text.lower() in c.lower()][:20]
 
-    # ── Колбеки ────────────────────────────────
+    #Колбеки
 
     def _on_country_selected(self, country: str):
         self._selected_country = country
@@ -522,6 +533,7 @@ class CityFinder(widgets.QFrame):
             return
         self.added_cities.add_city(self._selected_city)
         self._persist_cities()
+        self.city_saved.emit(self._selected_city)
         self.country_field.clear()
         self.city_field.clear()
         self._selected_country = None
@@ -536,8 +548,7 @@ class CityFinder(widgets.QFrame):
     def _on_card_deleted(self, city_name: str):
         self._persist_cities()
 
-    # ── Карта ──────────────────────────────────
-
+    #Карта
     def _show_default_map(self):
         self._show_map(48.3794, 31.1656, "Україна")
 
@@ -548,7 +559,7 @@ class CityFinder(widgets.QFrame):
         html = m._repr_html_()
         self.map_view.setHtml(html)
 
-    # ── Персистентность ────────────────────────
+    #Персистентность
 
     def _persist_cities(self):
         self._settings.setValue("cities", json.dumps(self.added_cities.city_names()))
@@ -562,7 +573,7 @@ class CityFinder(widgets.QFrame):
         except Exception:
             pass
 
-    # ── Загрузка стран ─────────────────────────
+    #Загрузка стран
 
     def _load_countries(self):
         self._countries_loader = _CountriesLoader()
@@ -570,9 +581,7 @@ class CityFinder(widgets.QFrame):
         self._countries_loader.start()
 
 
-# ──────────────────────────────────────────────
 # Фоновые загрузчики
-# ──────────────────────────────────────────────
 
 class _CountriesLoader(core.QThread):
     finished = core.pyqtSignal(list)

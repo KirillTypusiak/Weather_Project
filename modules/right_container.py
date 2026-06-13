@@ -11,9 +11,14 @@ from .top_frame import TopFrameWidget
 from utils import request_sender
 
 class RightContainer(widgets.QFrame):
-    def __init__(self, parent, city_name):
+    city_selected = core.pyqtSignal(str)
+    city_deleted = core.pyqtSignal(str)
+    city_saved = core.pyqtSignal(str)
+    def __init__(self, parent, city_name, settings=None):
         super().__init__(parent)
-
+        
+        self.settings = settings
+        self._modal = None
         self.city_name = city_name
         self.setMinimumWidth(830)
         self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
@@ -80,21 +85,24 @@ class RightContainer(widgets.QFrame):
     def set_search_callback(self, callback):
         self._search_callback = callback
 
+    def _on_modal_created(self, modal):
+        self._modal = modal
     
     def build_ui(self, response):
         
-        self.TOP_FRAME = TopFrameWidget(parent=self)
+        self.TOP_FRAME = TopFrameWidget(parent=self, settings=self.settings, modal = self._modal)
+        self.TOP_FRAME.city_selected.connect(self.city_selected)
+        self.TOP_FRAME.city_deleted.connect(self.city_deleted)
+        self.TOP_FRAME.city_saved.connect(self.city_saved)
+        self.TOP_FRAME.modal_created.connect(self._on_modal_created)
+        
+        
         self.WEATHER_CONTAINER_LAYOUT.addWidget(self.TOP_FRAME)
         
 
         self.dropdown = widgets.QListWidget(self)
         self.dropdown.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.dropdown.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        
-        # placeholder = widgets.QListWidgetItem("Результати пошуку")
-        # placeholder.setForeground(gui.QColor(255, 255, 255, 120))
-        # placeholder.setFlags(core.Qt.ItemFlag.NoItemFlags)  # нельзя кликнуть
-        # self.dropdown.addItem(placeholder)
         
         
         self.dropdown.setSpacing(5)

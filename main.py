@@ -3,7 +3,7 @@ from utils import load_cities
 
 def main():
     try:
-        load_cities()  # Завантажуємо міста один раз при старті програми
+        load_cities()
         main_window.show()
         application.exec()
     except Exception as error:

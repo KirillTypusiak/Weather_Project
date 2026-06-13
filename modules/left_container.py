@@ -1,6 +1,7 @@
 import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
 import PyQt6.QtCore as core
+import json
 
 from utils.request import request_sender
 
@@ -11,7 +12,7 @@ DEFAULT_CITIES = ["Dnipro", "Bratislava"]
 
 
 class LeftContainer(widgets.QFrame):
-    def __init__(self, parent, on_city_selected=None):
+    def __init__(self, parent, on_city_selected=None, settings= None):
         super().__init__(parent)
 
         self.setFixedWidth(370)
@@ -22,7 +23,12 @@ class LeftContainer(widgets.QFrame):
         self.BUTTON_TOOGLE = False
 
         # QSettings — зберігає міста між запусками
-        self.settings = core.QSettings("MyApp", "WeatherApp")
+        self.settings = settings or core.QSettings("MyApp", "WeatherApp")
+        
+        # Временно — очистить кривые данные
+        raw = self.settings.value("cities", None)
+        if isinstance(raw, list):  # старый формат Python list
+            self.settings.setValue("cities", json.dumps(raw))
 
         button_frame = widgets.QFrame(parent=self)
         button_frame.setFixedSize(330, 44)
@@ -51,17 +57,52 @@ class LeftContainer(widgets.QFrame):
         self.scroll_frame = widgets.QFrame(parent=scroll_area)
         scroll_area.setWidget(self.scroll_frame)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll_area.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll_area.setStyleSheet("background: transparent; border: none")
 
         self.scroll_layout = widgets.QVBoxLayout()
+        self.scroll_layout.setAlignment(core.Qt.AlignmentFlag.AlignTop)
+        self.scroll_layout.setSpacing(0)
+        self.scroll_layout.setContentsMargins(0, 0, 0, 0)
         self.scroll_frame.setLayout(self.scroll_layout)
 
-        # --- Завантажуємо міста: збережені або дефолтні ---
-        saved_cities = self.settings.value("cities", DEFAULT_CITIES)
+        # Завантажуємо міста: збережені або дефолтні
+        saved_cities = self.settings.value("cities", None)
+        if saved_cities is None:
+            saved_cities = DEFAULT_CITIES
+            self.settings.setValue("cities", json.dumps(saved_cities))
+        elif isinstance(saved_cities, str):
+            try:
+                saved_cities = json.loads(saved_cities)
+            except Exception:
+                saved_cities = DEFAULT_CITIES
         for city in saved_cities:
             self._add_card(city)
+            
+    def remove_city_card(self, city_name: str):
+        for i in range(self.scroll_layout.count()):
+            widget = self.scroll_layout.itemAt(i).widget()
+            if widget and hasattr(widget, 'city_name') and widget.city_name == city_name:
+                self.scroll_layout.removeWidget(widget)
+                widget.setParent(None)
+                widget.deleteLater()
+                break
+
+        raw = self.settings.value("cities", None)
+        if isinstance(raw, str):
+            try:
+                current_cities = json.loads(raw)
+            except Exception:
+                current_cities = []
+        elif isinstance(raw, list):
+            current_cities = raw
+        else:
+            current_cities = []
+
+        if city_name in current_cities:
+            current_cities.remove(city_name)
+            self.settings.setValue("cities", json.dumps(current_cities))
 
     def _icon_change(self):
         if self.BUTTON_TOOGLE:
@@ -86,16 +127,33 @@ class LeftContainer(widgets.QFrame):
             on_select=self._on_card_select,
         )
         self.scroll_layout.addWidget(card)
+        card.show()
+        self.scroll_frame.adjustSize()
 
     def add_city_card(self, city_name: str):
-        current_cities: list = self.settings.value("cities", DEFAULT_CITIES)
-        if city_name in current_cities:
-            return
+        for i in range(self.scroll_layout.count()):
+            widget = self.scroll_layout.itemAt(i).widget()
+            if widget and hasattr(widget, 'city_name') and widget.city_name == city_name:
+                return  # карточка уже есть в UI
 
         response = request_sender(city_name)
-        if response.get("cod") == "404" or response.get("cod") == 404:
+        if str(response.get("cod")) == "404":
             return
 
         self._add_card(city_name)
-        current_cities.append(city_name)
-        self.settings.setValue("cities", current_cities)
+
+        # Обновляем settings
+        raw = self.settings.value("cities", None)
+        if isinstance(raw, str):
+            try:
+                current_cities = json.loads(raw)
+            except Exception:
+                current_cities = []
+        elif isinstance(raw, list):
+            current_cities = raw
+        else:
+            current_cities = list(DEFAULT_CITIES)
+
+        if city_name not in current_cities:
+            current_cities.append(city_name)
+            self.settings.setValue("cities", json.dumps(current_cities))

@@ -11,7 +11,8 @@ class Weather_Content(widgets.QFrame):
     def __init__(self, parent, city_name, on_select = None):
         super().__init__(parent)
 
-        self.on_select = on_select  # callback из LeftContainer
+        self.on_select = on_select
+        self.city_name = city_name
 
         # self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA); background: transparent; border: 1px solid black; border-radius: 10px ")
         self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
@@ -47,7 +48,7 @@ class Weather_Content(widgets.QFrame):
         
         left_card.setLayout(left_card_layout)
         
-        if response["cod"] != 404:
+        if str(response.get("cod", "")) == "200" or response.get("cod") == 200:
             label1 = widgets.QLabel(left_card, text = str(response["name"]))
             
             label1.setStyleSheet("""
@@ -99,7 +100,7 @@ class Weather_Content(widgets.QFrame):
         
         right_card.setLayout(right_card_layout)
         
-        if response["cod"] != 404:
+        if str(response.get("cod", "")) == "200" or response.get("cod") == 200:
             label1 = widgets.QLabel(right_card, text = str(int(response["main"]["temp"] - 273.3)) + "°")
             label1.setAlignment(core.Qt.AlignmentFlag.AlignRight)
             label1.setStyleSheet("""

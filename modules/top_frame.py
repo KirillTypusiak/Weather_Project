@@ -8,8 +8,10 @@ from utils import request_cities
 
 class TopFrameWidget(widgets.QFrame):
     city_selected = core.pyqtSignal(str)
-
-    def __init__(self, parent):
+    city_deleted = core.pyqtSignal(str)
+    city_saved = core.pyqtSignal(str)
+    modal_created = core.pyqtSignal(object)
+    def __init__(self, parent, settings=None, modal=None):
         super().__init__(parent)
         self.setStyleSheet("background: transparent; border: none;")
         self.setSizePolicy(
@@ -18,7 +20,9 @@ class TopFrameWidget(widgets.QFrame):
         )
         self.setFixedHeight(36)
         
+        self.settings = settings
         self.cities_list_widget = None
+        self._modal = modal
 
         # Таймер для затримки запиту (debounce)
         self.timer = core.QTimer(self)
@@ -105,7 +109,10 @@ class TopFrameWidget(widgets.QFrame):
         
     def open_settings_modal(self):
         if not hasattr(self, '_modal') or self._modal is None:
-            self._modal = Modal(self.window())
+            self._modal = Modal(self.window(), settings=self.settings)
+            self._modal.city_deleted.connect(self.city_deleted)
+            self._modal.city_saved.connect(self.city_saved)
+            self.modal_created.emit(self._modal)
     
         if self._modal.isVisible():
             self._modal.close()

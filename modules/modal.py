@@ -38,7 +38,9 @@ class ModalTab(widgets.QFrame):
             self.on_select(self)
         
 class Modal(widgets.QWidget):
-    def __init__(self, parent=None, on_tab_selected=None):
+    city_deleted = core.pyqtSignal(str)
+    city_saved = core.pyqtSignal(str)
+    def __init__(self, parent=None, on_tab_selected=None, settings=None):
         super().__init__(parent)
         self.setFixedSize(790, 660)
         self.setWindowFlags(core.Qt.WindowType.FramelessWindowHint | core.Qt.WindowType.Tool)
@@ -49,6 +51,8 @@ class Modal(widgets.QWidget):
             }
         """)
         
+        self.settings = settings
+        self.city_finder = None
         self.on_tab_selected = on_tab_selected
         self.selected_tab = None
         self.right_modal_frame: widgets.QFrame = None
@@ -153,25 +157,40 @@ class Modal(widgets.QWidget):
         tab.set_selected(True)
         self.selected_tab = tab
         
-        if hasattr(self, "right_modal_frame") and self.right_modal_frame:
-            self.right_modal_frame.setParent(None)
+        if self.right_modal_frame is not None:
+            self.right_modal_frame.hide()
+            self.content_layout.removeWidget(self.right_modal_frame)
+            self.right_modal_frame = None
         
         tab_name = tab.label.text()
         if tab_name == "Пошук міста":
-            self.right_modal_frame = CityFinder(self.content)
-            self.content_layout.addWidget(self.right_modal_frame, alignment = core.Qt.AlignmentFlag.AlignLeft)
+            if self.city_finder is None:
+                self.city_finder = CityFinder(self.content, settings=self.settings)
+                self.city_finder.added_cities.city_deleted.connect(self.city_deleted)
+                self.city_finder.city_saved.connect(self.city_saved)
+            self.right_modal_frame = self.city_finder
             
         elif tab_name == "Розмір додатку":
-            pass
+            self.right_modal_frame = widgets.QLabel("Розмір додатку — в розробці", self.content)
+            self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
+            self.right_modal_frame.setFixedSize(544, 578)
+
         
         elif tab_name == "Мова додатку":
-            pass
+            self.right_modal_frame = widgets.QLabel("Мова додатку — в розробці", self.content)
+            self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
+            self.right_modal_frame.setFixedSize(544, 578)
+
         
         elif tab_name == "Списки зображень":
-            pass
+            self.right_modal_frame = widgets.QLabel("Списки зображень — в розробці", self.content)
+            self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
+            self.right_modal_frame.setFixedSize(544, 578)
         
         else:
             self.right_modal_frame = widgets.QWidget(self.content)
             self.right_modal_frame.setFixedSize(544, 578)
-            self.content_layout.addWidget(self.right_modal_frame)
+        
+        self.content_layout.addWidget(self.right_modal_frame, alignment=core.Qt.AlignmentFlag.AlignLeft |core.Qt.AlignmentFlag.AlignTop)
+        self.right_modal_frame.show()
         
