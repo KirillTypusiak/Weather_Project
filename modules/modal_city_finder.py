@@ -96,8 +96,9 @@ SAVE_BTN_ACTIVE = """
 def apply_placeholder_color(widget: widgets.QWidget):
     palette = widget.palette()
     palette.setColor(gui.QPalette.ColorRole.PlaceholderText, gui.QColor(113, 113, 122))
+    palette.setColor(gui.QPalette.ColorRole.Highlight, gui.QColor(100, 150, 255, 120))
+    palette.setColor(gui.QPalette.ColorRole.HighlightedText, gui.QColor(30, 30, 30))
     widget.setPalette(palette)
-
 
 def make_label(parent, text: str) -> widgets.QLabel:
     label = widgets.QLabel(text, parent)
@@ -382,6 +383,7 @@ class CityFinder(widgets.QFrame):
         self._cities_for_country: list[str] = []
         self._selected_country: str | None = None
         self._selected_city: str | None = None
+        self._selected_coord: str | None = None
         
         
 
@@ -443,6 +445,7 @@ class CityFinder(widgets.QFrame):
         coord_label = make_label(coord_frame, "Координати")
         coord_layout.addWidget(coord_label, alignment=core.Qt.AlignmentFlag.AlignTop | core.Qt.AlignmentFlag.AlignLeft)
         self.coord_input = widgets.QLineEdit()
+        self.coord_input.textChanged.connect(self._on_coord_changed)
         self.coord_input.setFixedSize(239, 32)
         self.coord_input.setPlaceholderText("WGS 84 / UTM / MGRS")
         self.coord_input.setStyleSheet(FIELD_INPUT_STYLE)
@@ -522,9 +525,28 @@ class CityFinder(widgets.QFrame):
     def _on_city_selected(self, city: str):
         self._selected_city = city
         self._update_save_btn()
+        coords = _geocode_city(city)
+        if coords:
+            lat, lon = coords
+            self.coord_input.blockSignals(True)
+            self.coord_input.setText(f"{lat}, {lon}")
+            self.coord_input.blockSignals(False)
+            self._show_map(lat, lon, city)
+        
+    def _on_coord_changed(self, text: str):
+        try:
+            parts = text.strip().split(",")
+            lat = float(parts[0].strip())
+            lon = float(parts[1].strip())
+            self._selected_coord = (lat, lon)
+            self._show_map(lat, lon, "")
+            self._update_save_btn()
+        except (ValueError, IndexError):
+            self._selected_coord = None
+            self._update_save_btn()
 
     def _update_save_btn(self):
-        ready = bool(self._selected_country and self._selected_city)
+        ready = bool(self._selected_country and self._selected_city or self._selected_coord)
         self.save_btn.setEnabled(ready)
         self.save_btn.setStyleSheet(SAVE_BTN_ACTIVE if ready else SAVE_BTN_INACTIVE)
 

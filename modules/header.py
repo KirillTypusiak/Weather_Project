@@ -12,6 +12,10 @@ class Header(widgets.QFrame):
         self.setStyleSheet("""
             background: transparent;
             border: none;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
         """)
 
         main_layout = widgets.QHBoxLayout(self)
@@ -28,6 +32,10 @@ class Header(widgets.QFrame):
                 stop:0 #7e8680,
                 stop:1 #6da6c8
             );
+            border-top-left-radius: 10px;
+            border-top-right-radius: 0px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
         """)
 
         right_header = widgets.QFrame()
@@ -39,6 +47,10 @@ class Header(widgets.QFrame):
                 stop:0 #efd95f,
                 stop:1 #b8d0b1
             );
+            border-top-left-radius: 0px;
+            border-top-right-radius: 10px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
         """)
 
         main_layout.addWidget(left_header)

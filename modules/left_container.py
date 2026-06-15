@@ -16,7 +16,13 @@ class LeftContainer(widgets.QFrame):
         super().__init__(parent)
 
         self.setFixedWidth(370)
-        self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2)")
+        self.setStyleSheet("""
+                background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2);
+                border-top-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 0px;
+                """)
 
         self.selected_card = None
         self.on_city_selected = on_city_selected

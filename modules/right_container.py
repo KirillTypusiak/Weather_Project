@@ -1,6 +1,7 @@
 import PyQt6.QtCore as core
 import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
+import json
 from datetime import datetime, timedelta, timezone
 
 
@@ -22,7 +23,13 @@ class RightContainer(widgets.QFrame):
         self.city_name = city_name
         self.setMinimumWidth(830)
         self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
-        self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA);")
+        self.setStyleSheet("""
+                        background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA);
+                        border-top-left-radius: 0px;
+                        border-top-right-radius: 0px;
+                        border-bottom-left-radius: 0px;
+                        border-bottom-right-radius: 10px;
+                        """)
 
         self.WEATHER_CONTAINER_LAYOUT = widgets.QVBoxLayout(self)
         self.setLayout(self.WEATHER_CONTAINER_LAYOUT)
@@ -42,10 +49,29 @@ class RightContainer(widgets.QFrame):
         }
         self.clock_timer = core.QTimer(self)
         self.clock_timer.timeout.connect(self.update_clock)
+        
+        self.build_empty_ui()
+        
+    def build_empty_ui(self):
+        self.clear_layout(self.WEATHER_CONTAINER_LAYOUT)
+        self.TOP_FRAME = TopFrameWidget(parent=self, settings=self.settings, modal=self._modal)
+        self.TOP_FRAME.city_selected.connect(self.city_selected)
+        self.TOP_FRAME.city_deleted.connect(self.city_deleted)
+        self.TOP_FRAME.city_saved.connect(self.city_saved)
+        self.TOP_FRAME.modal_created.connect(self._on_modal_created)
+        self.WEATHER_CONTAINER_LAYOUT.addWidget(self.TOP_FRAME)
 
-        self.update_city(city_name)
-        
-        
+        placeholder = widgets.QLabel("Виберіть місто")
+        placeholder.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
+        placeholder.setStyleSheet("""
+            color: rgba(255, 255, 255, 0.5);
+            font-family: Roboto;
+            font-size: 32px;
+            font-weight: 300;
+            background: transparent;
+            border: none;
+        """)
+        self.WEATHER_CONTAINER_LAYOUT.addWidget(placeholder, stretch=1)
 
     def clear_layout(self, layout):
         while layout.count():

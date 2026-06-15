@@ -14,7 +14,7 @@ class MainWindow(widgets.QMainWindow):
 
         self.setWindowFlags(core.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(core.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setStyleSheet("background: transparent; border: none;")
+        self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
         
         window_width = 1200
         window_height = 800
@@ -64,8 +64,6 @@ class MainWindow(widgets.QMainWindow):
         self.WEATHER_CONTAINER.city_deleted.connect(self.LEFT_CONTAINER.remove_city_card)
         self.WEATHER_CONTAINER.city_selected.connect(self.LEFT_CONTAINER.add_city_card)
         self.WEATHER_CONTAINER.city_saved.connect(self.LEFT_CONTAINER.add_city_card)
-        # self.WEATHER_CONTAINER.city_saved.connect(lambda city: print(f"city_saved сигнал: {city}"))
-        # self.WEATHER_CONTAINER.city_selected.connect(lambda city: print(f"city_selected сигнал: {city}"))
         self.WEATHER_CONTAINER.city_selected.connect(self._sync_to_city_finder)
 
     def _sync_to_city_finder(self, city_name: str):

@@ -52,18 +52,17 @@ class TopFrameWidget(widgets.QFrame):
         settings_button.setFixedSize(36, 36)
         settings_button.setStyleSheet("""
                     QPushButton {
-                        background: transparent; 
                         border: none; 
                         border-radius: 18px;
                         padding: 0; 
                         margin: 0;
                     }
                     QPushButton:hover {
-                        background: rgba(255, 255, 255, 0.1);
+                        background-color: rgba(255, 255, 255, 0.22);
                     }
                     QPushButton:pressed {
-                        background: rgba(255, 255, 255, 0.2);
-            }
+                        background-color: rgba(255, 255, 255, 0.28);
+                    }
                 """)
 
         button_layout.addWidget(settings_button)
