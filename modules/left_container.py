@@ -4,7 +4,7 @@ import PyQt6.QtCore as core
 import json
 
 from utils.request import request_sender
-
+from utils.request_cities import translate_city_name
 from .weather_content import Weather_Content
 
 
@@ -63,7 +63,7 @@ class LeftContainer(widgets.QFrame):
         self.scroll_frame = widgets.QFrame(parent=scroll_area)
         scroll_area.setWidget(self.scroll_frame)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll_area.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll_area.setStyleSheet("background: transparent; border: none")
 
@@ -83,13 +83,21 @@ class LeftContainer(widgets.QFrame):
                 saved_cities = json.loads(saved_cities)
             except Exception:
                 saved_cities = DEFAULT_CITIES
-        for city in saved_cities:
-            self._add_card(city)
+        for entry in saved_cities:
+            if isinstance(entry, str):
+                api_name = entry
+                display_name = translate_city_name(api_name)
+            else:
+                api_name = entry.get("api_name", "")
+                display_name = translate_city_name(api_name)
+            self._add_card(api_name, display_name=display_name)
             
     def remove_city_card(self, city_name: str):
         for i in range(self.scroll_layout.count()):
             widget = self.scroll_layout.itemAt(i).widget()
             if widget and hasattr(widget, 'city_name') and widget.city_name == city_name:
+                if self.selected_card is widget:
+                    self.selected_card = None
                 self.scroll_layout.removeWidget(widget)
                 widget.setParent(None)
                 widget.deleteLater()
@@ -120,16 +128,21 @@ class LeftContainer(widgets.QFrame):
 
     def _on_card_select(self, city_name, card):
         if self.selected_card and self.selected_card is not card:
-            self.selected_card.set_selected(False)
+            try:
+                self.selected_card.set_selected(False)
+            except RuntimeError:
+                pass
+            self.selected_card = None
         card.set_selected(True)
         self.selected_card = card
         if self.on_city_selected:
-            self.on_city_selected(city_name)
+            self.on_city_selected(city_name, card.display_name)
 
-    def _add_card(self, city_name: str):
+    def _add_card(self, city_name: str, display_name: str = ""):
         card = Weather_Content(
             parent=self.scroll_frame,
             city_name=city_name,
+            display_name=display_name or city_name,
             on_select=self._on_card_select,
         )
         self.scroll_layout.addWidget(card)
@@ -146,7 +159,7 @@ class LeftContainer(widgets.QFrame):
         if str(response.get("cod")) == "404":
             return
 
-        self._add_card(city_name)
+        self._add_card(city_name, display_name = translate_city_name(city_name))
 
         # Обновляем settings
         raw = self.settings.value("cities", None)

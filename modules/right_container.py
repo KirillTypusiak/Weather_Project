@@ -9,6 +9,7 @@ from .Horizontal_bar_card import HourlyForecastWidget
 from .temperature_chart import TemperatureChartWidget
 from .top_frame import TopFrameWidget
 
+from utils import weather_translater, translater
 from utils import request_sender
 
 class RightContainer(widgets.QFrame):
@@ -38,15 +39,8 @@ class RightContainer(widgets.QFrame):
         self.WEATHER_CONTAINER_LAYOUT.setSpacing(14)
 
         self.timezone_offset = 0
-        self.DAYS = {
-            0: "Понеділок",
-            1: "Вівторок",
-            2: "Середа",
-            3: "Четвер",
-            4: "П'ятниця",
-            5: "Субота",
-            6: "Неділя"
-        }
+        self.DAYS = translater("right_container", "days")
+        
         self.clock_timer = core.QTimer(self)
         self.clock_timer.timeout.connect(self.update_clock)
         
@@ -60,8 +54,21 @@ class RightContainer(widgets.QFrame):
         self.TOP_FRAME.city_saved.connect(self.city_saved)
         self.TOP_FRAME.modal_created.connect(self._on_modal_created)
         self.WEATHER_CONTAINER_LAYOUT.addWidget(self.TOP_FRAME)
+        
+        self.dropdown = widgets.QListWidget(self)
+        self.dropdown.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.dropdown.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.dropdown.setSpacing(5)
+        self.dropdown.setFixedWidth(261)
+        self.dropdown.setFixedHeight(200)
+        self.dropdown.setStyleSheet(
+            "background-color: rgba(0,0,0,0.2); border: none; border-radius: 10px;"
+        )
+        self.dropdown.hide()
+        self.dropdown.itemClicked.connect(self.TOP_FRAME.on_city_selected)
+        self.TOP_FRAME.set_dropdown(self.dropdown)
 
-        placeholder = widgets.QLabel("Виберіть місто")
+        placeholder = widgets.QLabel(translater("right_container", "select_city"))
         placeholder.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
         placeholder.setStyleSheet("""
             color: rgba(255, 255, 255, 0.5);
@@ -97,8 +104,9 @@ class RightContainer(widgets.QFrame):
             city_now = self.city_datetime()
             self.day_label.setText(self.DAYS[city_now.weekday()])
 
-    def update_city(self, city_name):
+    def update_city(self, city_name, display_name=None):
         self.city_name = city_name
+        self.display_name = display_name or city_name
         self.clear_layout(self.WEATHER_CONTAINER_LAYOUT)
         response = request_sender(city_name)
         self.timezone_offset = response.get("timezone", 0) if isinstance(response, dict) else 0
@@ -106,7 +114,6 @@ class RightContainer(widgets.QFrame):
         if not self.clock_timer.isActive():
             self.clock_timer.start(1000)
         self.update_clock()
-        # self.city_selected_callback()
         
     def set_search_callback(self, callback):
         self._search_callback = callback
@@ -174,7 +181,7 @@ class RightContainer(widgets.QFrame):
         navigation_label.setStyleSheet("background: transparent; border: none")
         top_label_widget_layout.addWidget(navigation_label)
 
-        top_label = widgets.QLabel(top_label_widget, text = "Поточна позиція")
+        top_label = widgets.QLabel(top_label_widget, text = translater("right_container", "current_position"))
         top_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
         top_label.setFixedHeight(27)
         top_label.setStyleSheet("""
@@ -197,7 +204,8 @@ class RightContainer(widgets.QFrame):
             """)    
 
         if response["cod"] != 404:
-            label1 = widgets.QLabel(left_center_container, text = str(response["name"]))
+            label1 = widgets.QLabel(left_center_container, text = self.display_name)
+            label1.setWordWrap(True)
             label1.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             label1.setStyleSheet("""
                                     font-family: Roboto;
@@ -255,7 +263,7 @@ class RightContainer(widgets.QFrame):
                                     """)
             weather_widget_layout.addWidget(temp_label)
 
-            label3 = widgets.QLabel(left_center_container, text = str(response["weather"][0]["main"]))
+            label3 = widgets.QLabel(left_center_container, text = str(weather_translater(response["weather"][0]["main"])))
             label3.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             label3.setStyleSheet("""
                                     font-family: Roboto;
@@ -267,7 +275,7 @@ class RightContainer(widgets.QFrame):
                                     """)
             left_center_container_layout.addWidget(label3)
 
-            label4 = widgets.QLabel(left_center_container, text = f"Макс.:{str(int(response["main"]["temp_max"] - 273.3)) + "°"}, Мін.:{str(int(response["main"]["temp_min"] - 273.3)) + "°"}")
+            label4 = widgets.QLabel(left_center_container, text = f"{translater("right_container", "max")}:{str(int(response["main"]["temp_max"] - 273.3))}°, {translater("right_container", "min")}:{str(int(response["main"]["temp_min"] - 273.3))}°")
             label4.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
             label4.setStyleSheet("""
                                     font-family: Roboto;
@@ -297,7 +305,7 @@ class RightContainer(widgets.QFrame):
         right_center_container_layout.setSpacing(12)
         right_center_container.setLayout(right_center_container_layout)
         
-        top_right_label = widgets.QLabel(right_center_container, text = "Сьогодні")
+        top_right_label = widgets.QLabel(right_center_container, text = translater("right_container", "today"))
         top_right_label.setAlignment(core.Qt.AlignmentFlag.AlignLeft)
         top_right_label.setStyleSheet("""
             font-family: Roboto;
@@ -415,7 +423,7 @@ class RightContainer(widgets.QFrame):
         footer_layout.addWidget(top_footer)
         footer_layout.addWidget(bottom_footer)
         
-        chart_title_label = widgets.QLabel("Прогноз на 12 годин")
+        chart_title_label = widgets.QLabel(translater("right_container", "forecast_12h"))
         chart_title_label.setStyleSheet("""
             font-family: Roboto;
             font-size: 15px;
@@ -445,7 +453,7 @@ class RightContainer(widgets.QFrame):
         top_footer_layout.setSpacing(10)
         top_footer.setLayout(top_footer_layout)
 
-        label5 = widgets.QLabel("Погода до кінця дня")
+        label5 = widgets.QLabel(translater("right_container", "weather_today"))
         label5.setStyleSheet("""
             font-family: Roboto;
             font-size: 15px;

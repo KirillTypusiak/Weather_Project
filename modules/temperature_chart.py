@@ -4,15 +4,10 @@ import PyQt6.QtCore as core
 
 from datetime import datetime, timezone, timedelta
 
-from utils import request_forecast
+from utils import request_forecast, translater
 
 
 class TemperatureChartWidget(widgets.QFrame):
-    """
-    Диаграмма температуры на 12 часов.
-    Столбцы окрашены градиентом (синий→жёлтый) по температуре.
-    Правая шкала фиксирована: от -10° до 25°.
-    """
 
     SCALE_MIN = -10
     SCALE_MAX = 25
@@ -29,7 +24,7 @@ class TemperatureChartWidget(widgets.QFrame):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # ── Область со столбцами ──────────────────────────────────────────
+
         self.scroll = widgets.QScrollArea()
         self.scroll.setFrameShape(widgets.QFrame.Shape.NoFrame)
         self.scroll.setHorizontalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -38,12 +33,12 @@ class TemperatureChartWidget(widgets.QFrame):
         self.scroll.setStyleSheet("background: transparent; border: none;")
         root.addWidget(self.scroll, stretch=1)
 
-        # ── Фиксированная шкала справа ────────────────────────────────────
+
         self.scale_widget = _ScaleWidget(self.SCALE_MIN, self.SCALE_MAX)
         root.addWidget(self.scale_widget)
         self.load(city_name, timezone_offset)
 
-    # ------------------------------------------------------------------
+
     def load(self, city_name: str, timezone_offset: int):
         data = request_forecast(city_name)
 
@@ -55,7 +50,7 @@ class TemperatureChartWidget(widgets.QFrame):
         row.setAlignment(core.Qt.AlignmentFlag.AlignLeft | core.Qt.AlignmentFlag.AlignBottom)
 
         if data.get("cod") not in ("200", 200):
-            err = widgets.QLabel("Не вдалося завантажити прогноз")
+            err = widgets.QLabel(translater("temperature_chart", "forecast_error"))
             err.setStyleSheet(
                 "color: white; font-family: Roboto; font-size: 14px;"
                 "background: transparent; border: none;"
@@ -163,7 +158,7 @@ class _TempBar(widgets.QWidget):
         return int(ratio * self.MAX_BAR_H)
 
 
-# ══════════════════════════════════════════════════════════════════════
+
 class _GradientBar(widgets.QWidget):
     """Прямоугольный столбец с градиентом синий→жёлтый по температуре."""
 
@@ -191,9 +186,8 @@ class _GradientBar(widgets.QWidget):
         painter.end()
 
 
-# ══════════════════════════════════════════════════════════════════════
+
 class _ScaleWidget(widgets.QWidget):
-    """Фиксированная вертикальная шкала температур (от max до min сверху вниз)."""
 
     LABELS = [25, 20, 15, 10, 5, 0, -5, -10]
     WIDTH  = 36

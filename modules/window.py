@@ -71,6 +71,6 @@ class MainWindow(widgets.QMainWindow):
         if modal and modal.city_finder:
             modal.city_finder.added_cities.add_city(city_name)
             modal.city_finder._persist_cities()
-    def on_city_selected(self, city_name):
-        self.WEATHER_CONTAINER.update_city(city_name)
+    def on_city_selected(self, city_name, display_name=None):
+        self.WEATHER_CONTAINER.update_city(city_name, display_name)
 main_window = MainWindow()

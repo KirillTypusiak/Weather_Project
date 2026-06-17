@@ -4,7 +4,7 @@ import PyQt6.QtGui as gui
 
 from modules.modal import Modal
 from utils import request_cities
-
+from utils import translater
 
 class TopFrameWidget(widgets.QFrame):
     city_selected = core.pyqtSignal(str)
@@ -23,6 +23,10 @@ class TopFrameWidget(widgets.QFrame):
         self.settings = settings
         self.cities_list_widget = None
         self._modal = modal
+        
+        if self._modal is not None:
+            self._modal.city_deleted.connect(self.city_deleted)
+            self._modal.city_saved.connect(self.city_saved)
 
         # Таймер для затримки запиту (debounce)
         self.timer = core.QTimer(self)
@@ -74,7 +78,7 @@ class TopFrameWidget(widgets.QFrame):
         settings_button.clicked.connect(self.open_settings_modal)
         
 
-        settings_label = widgets.QLabel("Налаштування", self)
+        settings_label = widgets.QLabel(translater("top_frame", "settings"), self)
         settings_label.setContentsMargins(0, 0, 0, 0)
         settings_label.setIndent(0)
         settings_label.setStyleSheet("""
@@ -93,7 +97,7 @@ class TopFrameWidget(widgets.QFrame):
         )
         self.text_field.setClearButtonEnabled(True)
         self.text_field.setFixedSize(261, 36)
-        self.text_field.setPlaceholderText("Пошук")
+        self.text_field.setPlaceholderText(translater("top_frame", "search_placeholder"))
         self.text_field.setStyleSheet("""
             font-family: Roboto;
             font-size: 14px;
@@ -151,7 +155,7 @@ class TopFrameWidget(widgets.QFrame):
             self.cities_list_widget.hide()
             return
         
-        placeholder = widgets.QListWidgetItem("Результати пошуку")
+        placeholder = widgets.QListWidgetItem(translater("top_frame", "search_results"))
         placeholder.setForeground(gui.QColor(255, 255, 255, 204))
         font = gui.QFont("Roboto", 12, 400)
         placeholder.setFont(font)

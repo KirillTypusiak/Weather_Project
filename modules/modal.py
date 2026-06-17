@@ -4,6 +4,8 @@ import PyQt6.QtCore as core
 import json
 
 from .modal_city_finder import CityFinder
+from .modal_language_change import LanguageSettings
+from utils import translater
 
 
 class ModalTab(widgets.QFrame):
@@ -56,6 +58,8 @@ class Modal(widgets.QWidget):
         self.on_tab_selected = on_tab_selected
         self.selected_tab = None
         self.right_modal_frame: widgets.QFrame = None
+        self.language_change = None
+
 
         root_layout = widgets.QVBoxLayout(self)
         root_layout.setContentsMargins(0, 15, 0, 0)
@@ -68,7 +72,7 @@ class Modal(widgets.QWidget):
         header_layout.setContentsMargins(16, 0, 12, 0)
         header_layout.setSpacing(0)
 
-        title = widgets.QLabel("Налаштування")
+        title = widgets.QLabel(translater("modal", "settings_title"))
         title.setStyleSheet("""
             color: white;
             font-family: Roboto;
@@ -127,7 +131,7 @@ class Modal(widgets.QWidget):
         
         content_layout.addWidget(left_modal_frame)
         
-        tab_names = ["Пошук міста", "Розмір додатку", "Мова додатку", "Списки зображень"]
+        tab_names = [translater("modal", "tab_search"), translater("modal", "tab_size"), translater("modal", "tab_language"), translater("modal", "tab_images")]
         for name in tab_names:
             tab = ModalTab(left_modal_frame, name, on_select = self._on_tab_select)
             left_modal_layout.addWidget(tab)
@@ -163,27 +167,25 @@ class Modal(widgets.QWidget):
             self.right_modal_frame = None
         
         tab_name = tab.label.text()
-        if tab_name == "Пошук міста":
+        if tab_name == translater("modal", "tab_search"):
             if self.city_finder is None:
                 self.city_finder = CityFinder(self.content, settings=self.settings)
                 self.city_finder.added_cities.city_deleted.connect(self.city_deleted)
                 self.city_finder.city_saved.connect(self.city_saved)
             self.right_modal_frame = self.city_finder
             
-        elif tab_name == "Розмір додатку":
-            self.right_modal_frame = widgets.QLabel("Розмір додатку — в розробці", self.content)
+        elif tab_name == translater("modal", "tab_size"):
+            self.right_modal_frame = widgets.QLabel(translater("modal", "tab_size_wip"), self.content)
             self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
             self.right_modal_frame.setFixedSize(544, 578)
 
         
-        elif tab_name == "Мова додатку":
-            self.right_modal_frame = widgets.QLabel("Мова додатку — в розробці", self.content)
-            self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
-            self.right_modal_frame.setFixedSize(544, 578)
-
+        elif tab_name == translater("modal", "tab_language"):
+            self.right_modal_frame = LanguageSettings(self.content)
+            self.content_layout.addWidget(self.right_modal_frame, alignment=core.Qt.AlignmentFlag.AlignLeft)
         
-        elif tab_name == "Списки зображень":
-            self.right_modal_frame = widgets.QLabel("Списки зображень — в розробці", self.content)
+        elif tab_name == translater("modal", "tab_images"):
+            self.right_modal_frame = widgets.QLabel(translater("modal", "tab_images_wip"), self.content)
             self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
             self.right_modal_frame.setFixedSize(544, 578)
         

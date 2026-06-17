@@ -3,7 +3,8 @@ import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
 from datetime import datetime, timezone, timedelta
 
-from utils import request_forecast
+from utils import request_forecast, translater
+
 
 WEATHER_ICONS = {
     "Clear":       "media/Sun_table.png",
@@ -79,13 +80,7 @@ class HourlyCard(widgets.QFrame):
 
 
 class SunCard(widgets.QFrame):
-    """Карточка з часом сходу або заходу сонця."""
-
     def __init__(self, parent, kind: str, time_str: str):
-        """
-        kind: 'sunrise' або 'sunset'
-        time_str: час у форматі 'HH:MM'
-        """
         super().__init__(parent)
         self.setFixedSize(55, 76)
         self.setStyleSheet("""
@@ -129,7 +124,7 @@ class SunCard(widgets.QFrame):
         layout.addWidget(icon_label, alignment=core.Qt.AlignmentFlag.AlignHCenter)
         
         # Надпись «Схід» / «Захід»
-        label_text = "Схід" if kind == "sunrise" else "Захід"
+        label_text = translater("horizontal_bar_card", "sunrise") if kind == "sunrise" else translater("horizontal_bar_card", "sunset")
         label = widgets.QLabel(label_text)
         label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet("""
@@ -147,11 +142,6 @@ class SunCard(widgets.QFrame):
 
 
 class HourlyForecastWidget(widgets.QFrame):
-    """
-    Вставляється замість top_footer у FOOTER.
-    Містить горизонтальний скрол з картками
-    та дві кнопки (← →) для переходу до країв.
-    """
     def __init__(self, parent, city_name: str, timezone_offset: int = 0):
         super().__init__(parent)
         self.setFixedHeight(100)
@@ -236,7 +226,7 @@ class HourlyForecastWidget(widgets.QFrame):
         row.setAlignment(core.Qt.AlignmentFlag.AlignLeft | core.Qt.AlignmentFlag.AlignVCenter)
 
         if data.get("cod") != "200" and data.get("cod") != 200:
-            err = widgets.QLabel("Не вдалося завантажити прогноз")
+            err = widgets.QLabel(translater("horizontal_bar_card", "forecast_error"))
             err.setStyleSheet("color: white; font-family: Roboto; font-size: 14px; background: transparent; border: none;")
             row.addWidget(err)
             self.scroll.setWidget(inner)

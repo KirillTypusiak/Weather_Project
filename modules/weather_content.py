@@ -5,16 +5,17 @@ import datetime
 import json
 
 from utils import request_sender
-
+from utils import weather_translater, translater
 
 class Weather_Content(widgets.QFrame):
-    def __init__(self, parent, city_name, on_select = None):
+    def __init__(self, parent, city_name, display_name = None, on_select = None):
         super().__init__(parent)
 
         self.on_select = on_select
         self.city_name = city_name
+        self.display_name = display_name or city_name
+        name_to_show = display_name or city_name
 
-        # self.setStyleSheet("background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA); background: transparent; border: 1px solid black; border-radius: 10px ")
         self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
         self.setFixedSize(320,90)
         
@@ -49,8 +50,7 @@ class Weather_Content(widgets.QFrame):
         left_card.setLayout(left_card_layout)
         
         if str(response.get("cod", "")) == "200" or response.get("cod") == 200:
-            label1 = widgets.QLabel(left_card, text = str(response["name"]))
-            
+            label1 = widgets.QLabel(left_card, text = name_to_show)
             label1.setStyleSheet("""
                 font-family: Roboto;
                 font-size: 20px;
@@ -71,7 +71,7 @@ class Weather_Content(widgets.QFrame):
                 background: transparent
             """)
             
-            label3 = widgets.QLabel(left_card, text = str(response["weather"][0]["main"]))
+            label3 = widgets.QLabel(left_card, text = str(weather_translater(response["weather"][0]["main"])))
             
             label3.setStyleSheet("""
                 font-family: Roboto;
@@ -112,7 +112,7 @@ class Weather_Content(widgets.QFrame):
             """)
 
 
-            label2 = widgets.QLabel(right_card, text = f"Макс.:{str(int(response["main"]["temp_max"] - 273.3)) + "°"}, Мін.:{str(int(response["main"]["temp_min"] - 273.3)) + "°"}")
+            label2 = widgets.QLabel(right_card, text = f"{translater("weather_content", "max")}:{str(int(response["main"]["temp_max"] - 273.3))}°, {translater("weather_content", "min")}:{str(int(response["main"]["temp_min"] - 273.3))}°")
             
             label2.setStyleSheet("""
                 font-family: Roboto;

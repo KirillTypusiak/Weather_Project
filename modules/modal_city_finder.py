@@ -7,6 +7,10 @@ import io
 import json
 
 from utils import request_cities
+from utils import translater
+from utils import get_english_city_name
+from utils import translate_city_name
+from utils.request_cities import request_countries
 
 # Стили
 
@@ -171,22 +175,34 @@ class SearchField(widgets.QFrame):
         self.dropdown = DropdownPopup(self.window())
         self.dropdown.item_selected.connect(self._on_selected)
 
+        #debounce
+        self._search_timer = core.QTimer(self)
+        self._search_timer.setSingleShot(True)
+        self._search_timer.timeout.connect(self._run_search)
+
         self.input.textChanged.connect(self._on_text_changed)
 
     def _on_text_changed(self, text: str):
         self._selected_value = None
-        results = self.fetch_fn(text)
-        if results:
-            self.dropdown.show_items(results, self.input)
-        else:
+        self._search_timer.stop()
+        if not text.strip():
             self.dropdown.hide()
-
+            return
+        self._search_timer.start(350)
+        
     def _on_selected(self, value: str):
         self._selected_value = value
         self.input.blockSignals(True)
         self.input.setText(value)
         self.input.blockSignals(False)
         self.value_selected.emit(value)
+        
+    def _run_search(self):
+        results = self.fetch_fn(self.input.text())
+        if results:
+            self.dropdown.show_items(results, self.input)
+        else:
+            self.dropdown.hide()
 
     def selected_value(self) -> str | None:
         return self._selected_value
@@ -204,9 +220,10 @@ class CityCard(widgets.QFrame):
     clicked = core.pyqtSignal(str)
     deleted = core.pyqtSignal(str)
 
-    def __init__(self, parent, city_name: str):
+    def __init__(self, parent, api_name: str, display_name: str):
         super().__init__(parent)
-        self.city_name = city_name
+        self.city_name = api_name
+        self.api_name = api_name
         self.setFixedHeight(44)
         self.setCursor(gui.QCursor(core.Qt.CursorShape.PointingHandCursor))
         self.setStyleSheet("""
@@ -223,7 +240,7 @@ class CityCard(widgets.QFrame):
         layout = widgets.QHBoxLayout(self)
         layout.setContentsMargins(12, 0, 12, 0)
 
-        name_label = widgets.QLabel(city_name)
+        name_label = widgets.QLabel(display_name)
         name_label.setStyleSheet("""
             color: white;
             font-family: Roboto;
@@ -250,7 +267,7 @@ class CityCard(widgets.QFrame):
                 background: rgba(255, 80, 80, 0.2);
             }
         """)
-        trash_btn.clicked.connect(lambda: self.deleted.emit(self.city_name))
+        trash_btn.clicked.connect(lambda: self.deleted.emit(self.api_name))
         layout.addWidget(trash_btn)
 
     def mousePressEvent(self, event):
@@ -309,14 +326,17 @@ class AddedCitiesWidget(widgets.QScrollArea):
         self.setFixedHeight(200)
         self._cards: dict[str, CityCard] = {}
 
-    def add_city(self, city_name: str):
-        if city_name in self._cards:
+    def add_city(self, api_name: str, display_name: str = None):
+        if api_name in self._cards:
             return
-        card = CityCard(self, city_name)
+        card = CityCard(self, api_name, display_name or api_name)
         card.clicked.connect(self.city_clicked)
         card.deleted.connect(self._remove_city)
-        self._cards[city_name] = card
+        self._cards[api_name] = card
         self.cards_layout.insertWidget(self.cards_layout.count() - 1, card)
+        
+    def city_pairs(self) -> list[tuple[str, str]]:
+        return [(api_name, card.city_name) for api_name, card in self._cards.items()]
 
     def _remove_city(self, city_name: str):
         card = self._cards.pop(city_name, None)
@@ -379,6 +399,8 @@ class CityFinder(widgets.QFrame):
         self.setFixedWidth(544)
 
         self._settings = settings or core.QSettings("MyApp", "WeatherApp")
+        self._country_codes: dict[str, str] = {}
+        self._selected_country_code: str | None = None
         self._all_countries: list[str] = []
         self._cities_for_country: list[str] = []
         self._selected_country: str | None = None
@@ -393,7 +415,7 @@ class CityFinder(widgets.QFrame):
         root_layout.setSpacing(10)
 
         # Заголовок
-        search_title = widgets.QLabel("Пошук міста")
+        search_title = widgets.QLabel(translater("modal_city_finder", "search_city_title"))
         search_title.setStyleSheet("""
             font-size: 18px; font-weight: 400;
             margin-bottom: 8px; color: white; font-family: Roboto;
@@ -421,7 +443,7 @@ class CityFinder(widgets.QFrame):
 
         # Поле страны
         self.country_field = SearchField(
-            left_frame, "Країна", "Виберіть країну",
+            left_frame, translater("modal_city_finder", "country"), translater("modal_city_finder", "select_country"),
             self._search_country
         )
         self.country_field.value_selected.connect(self._on_country_selected)
@@ -429,7 +451,7 @@ class CityFinder(widgets.QFrame):
 
         # Поле города
         self.city_field = SearchField(
-            left_frame, "Місто", "Виберіть місто",
+            left_frame, translater("modal_city_finder", "city"), translater("modal_city_finder", "select_city"),
             self._search_city
         )
         self.city_field.value_selected.connect(self._on_city_selected)
@@ -442,7 +464,7 @@ class CityFinder(widgets.QFrame):
         coord_layout = widgets.QVBoxLayout(coord_frame)
         coord_layout.setSpacing(5)
         coord_layout.setContentsMargins(0, 0, 0, 0)
-        coord_label = make_label(coord_frame, "Координати")
+        coord_label = make_label(coord_frame, translater("modal_city_finder", "coordinates"))
         coord_layout.addWidget(coord_label, alignment=core.Qt.AlignmentFlag.AlignTop | core.Qt.AlignmentFlag.AlignLeft)
         self.coord_input = widgets.QLineEdit()
         self.coord_input.textChanged.connect(self._on_coord_changed)
@@ -454,7 +476,7 @@ class CityFinder(widgets.QFrame):
         left_layout.addWidget(coord_frame)
 
         # Кнопка Зберегти
-        self.save_btn = widgets.QPushButton("Зберегти")
+        self.save_btn = widgets.QPushButton(translater("modal_city_finder", "save"))
         self.save_btn.setFixedSize(130, 38)
         self.save_btn.setCursor(gui.QCursor(core.Qt.CursorShape.PointingHandCursor))
         self.save_btn.setStyleSheet(SAVE_BTN_INACTIVE)
@@ -476,7 +498,7 @@ class CityFinder(widgets.QFrame):
         self._show_default_map()
 
         # Секция "Додані міста"
-        added_title = widgets.QLabel("Додані міста")
+        added_title = widgets.QLabel(translater("modal_city_finder", "added_cities"))
         added_title.setStyleSheet("""
             font-size: 18px; font-weight: 400;
             margin-top: 12px; color: white; font-family: Roboto;
@@ -496,17 +518,21 @@ class CityFinder(widgets.QFrame):
     def _search_country(self, text: str) -> list[str]:
         if len(text) < 1:
             return []
-        return [c for c in self._all_countries if text.lower() in c.lower()][:20]
-
+        results = request_countries(text)
+        self._country_codes = {item["name"]: item["code"] for item in results}
+        return [item["name"] for item in results]
+    
     def _search_city(self, text: str) -> list[str]:
         if len(text) < 2:
             return []
-        return [c for c in self._cities_for_country if text.lower() in c.lower()][:20]
+        return request_cities(text, country_code=self._selected_country_code)
+
 
     #Колбеки
 
     def _on_country_selected(self, country: str):
         self._selected_country = country
+        self._selected_country_code = self._country_codes.get(country)
         self._selected_city = None
         self.city_field.clear()
         self._update_save_btn()
@@ -553,9 +579,11 @@ class CityFinder(widgets.QFrame):
     def _on_save(self):
         if not self._selected_city:
             return
-        self.added_cities.add_city(self._selected_city)
+        api_name = get_english_city_name(self._selected_city)
+        display_name = self._selected_city
+        self.added_cities.add_city(api_name, display_name)  # ← было self._selected_city
         self._persist_cities()
-        self.city_saved.emit(self._selected_city)
+        self.city_saved.emit(api_name)
         self.country_field.clear()
         self.city_field.clear()
         self._selected_country = None
@@ -584,14 +612,24 @@ class CityFinder(widgets.QFrame):
     #Персистентность
 
     def _persist_cities(self):
+        cities_data = [
+            {"api_name": api_name, "display_name": display_name}
+            for api_name, display_name in self.added_cities.city_pairs()
+        ]
         self._settings.setValue("cities", json.dumps(self.added_cities.city_names()))
 
     def _restore_cities(self):
         raw = self._settings.value("cities", "[]")
         try:
             cities = json.loads(raw)
-            for city in cities:
-                self.added_cities.add_city(city)
+            for entry in cities:
+                if isinstance(entry, str):
+                    api_name = entry
+                    display_name = translate_city_name(api_name)
+                else:
+                    api_name = entry.get("api_name", "")
+                    display_name = translate_city_name(api_name)
+                self.added_cities.add_city(api_name, display_name)
         except Exception:
             pass
 
