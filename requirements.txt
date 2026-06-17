@@ -1,0 +1,17 @@
+branca==0.8.2
+certifi==2026.6.17
+charset-normalizer==3.4.7
+folium==0.20.0
+idna==3.18
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+numpy==2.4.6
+PyQt6==6.11.0
+PyQt6-Qt6==6.11.1
+PyQt6-WebEngine==6.11.0
+PyQt6-WebEngine-Qt6==6.11.1
+PyQt6_sip==13.11.1
+python-dotenv==1.2.2
+requests==2.34.2
+urllib3==2.7.0
+xyzservices==2026.3.0
