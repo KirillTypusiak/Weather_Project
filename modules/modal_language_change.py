@@ -8,6 +8,36 @@ import subprocess
 from utils.translate import set_language, current_language
 from utils import translater
 
+SAVE_BTN_INACTIVE = """
+    QPushButton {
+        background-color: rgba(80, 80, 80, 1);
+        border-radius: 6px;
+        color: rgba(160, 160, 160, 1);
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+    }
+"""
+
+SAVE_BTN_ACTIVE = """
+    QPushButton {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 1);
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+    }
+    QPushButton:hover {
+        background-color: rgba(255, 255, 255, 0.22);
+    }
+    QPushButton:pressed {
+        background-color: rgba(255, 255, 255, 0.28);
+    }
+"""
+
 class LanguageSettings(widgets.QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -109,11 +139,58 @@ class LanguageSettings(widgets.QFrame):
             }
         """)
         layout.addWidget(self.save_btn)
-        self.save_btn.clicked.connect(self._on_save)
+        self.save_btn.clicked.connect(self._open_exit_screen)
+        
+        self.screen: widgets.QWidget = widgets.QWidget(self.window())
+        self.window_layout = widgets.QVBoxLayout(self.screen)
+        self.window_layout.setContentsMargins(0,20,0,0)
+        self.window_layout.setSpacing(50)
+        self.window_layout.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
+        self.screen.hide()
+        self.screen.setFixedSize(400, 350)
+        self.screen.setStyleSheet(
+        """
+            background-color: rgba(35, 35, 35, 1);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        
+        """)
+        window_label = widgets.QLabel(text = translater("modal_language_change", "reopen_warn"), parent = self.screen)
+        self.window_layout.addWidget(window_label)
+        window_label.setStyleSheet(
+        """
+            color: rgba(255, 255, 255, 0.7);
+            font-family: Roboto;
+            font-size: 14px;
+            font-weight: 400;
+            background: transparent;
+            border: none;
+        """)
+        self.accept_button = widgets.QPushButton(parent = self.screen, text = "OK")
+        self.window_layout.addWidget(self.accept_button, alignment = core.Qt.AlignmentFlag.AlignCenter)
+        self.accept_button.setFixedSize(130, 38)
+        self.accept_button.setStyleSheet(SAVE_BTN_ACTIVE)
+        self.accept_button.clicked.connect(self._on_save)
         
     def _on_save(self):
+        self._timer.stop()
         lang_map = {"Українська": "uk", "English": "en"}
         lang = lang_map.get(self.lang_combo.currentText(), "uk")
         set_language(lang)
         subprocess.Popen([sys.executable] + sys.argv)
         widgets.QApplication.quit()
+        
+    def _open_exit_screen(self):
+        self.screen.show()
+        self.screen.raise_()
+        self.timer_count = 10
+        self._timer = core.QTimer(self)
+        self._timer.timeout.connect(self._tick)
+        self._timer.start(1000)
+        
+    def _tick(self):
+        self.timer_count -= 1
+        self.accept_button.setText(f"OK ({self.timer_count})")
+        if self.timer_count <= 0:
+            self._on_save()
+        

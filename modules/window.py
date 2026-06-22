@@ -16,8 +16,15 @@ class MainWindow(widgets.QMainWindow):
         self.setAttribute(core.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
         
-        window_width = 1200
-        window_height = 800
+        self.settings = core.QSettings("MyApp", "settings")
+        text: str = self.settings.value("window_size")
+        width, height = text.split("x")
+        window_width = int(width)
+        window_height = int(height)
+        
+        # window_width = 1200
+        # window_height = 800
+        
 
         screen = application.primaryScreen()
         screen_size = screen.size()

@@ -50,6 +50,7 @@ TRANSLATIONS = {
             "option_uk": "Українська",
             "option_en": "English",
             "save": "Зберегти",
+            "reopen_warn": "Додаток буде перезапущено для зміни мови",
         },
         "en": {
             "title": "Select app language",
@@ -57,6 +58,15 @@ TRANSLATIONS = {
             "option_uk": "Ukrainian",
             "option_en": "English",
             "save": "Save",
+            "reopen_warn": "App will be reopened for language changing",
+        }
+    },
+    "modal_size_change": {
+        "uk": {
+            "title": "Оберіть розмір додатку"
+        },
+        "en": {
+            "title": "Choose the app size"
         }
     },
     "top_frame": {

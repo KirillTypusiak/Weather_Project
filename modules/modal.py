@@ -5,6 +5,7 @@ import json
 
 from .modal_city_finder import CityFinder
 from .modal_language_change import LanguageSettings
+from .modal_size_change import ModalSizeChange
 from utils import translater
 
 
@@ -175,9 +176,8 @@ class Modal(widgets.QWidget):
             self.right_modal_frame = self.city_finder
             
         elif tab_name == translater("modal", "tab_size"):
-            self.right_modal_frame = widgets.QLabel(translater("modal", "tab_size_wip"), self.content)
-            self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
-            self.right_modal_frame.setFixedSize(544, 578)
+            self.right_modal_frame = ModalSizeChange(self.content)
+            self.content_layout.addWidget(self.right_modal_frame, alignment=core.Qt.AlignmentFlag.AlignLeft)
 
         
         elif tab_name == translater("modal", "tab_language"):

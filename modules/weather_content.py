@@ -67,7 +67,7 @@ class Weather_Content(widgets.QFrame):
                 """font-family: Roboto; 
                 font-size: 10px; 
                 font-weight: 300; 
-                color: #white
+                color: white
                 background: transparent
             """)
             
