@@ -6,6 +6,7 @@ import json
 from .modal_city_finder import CityFinder
 from .modal_language_change import LanguageSettings
 from .modal_size_change import ModalSizeChange
+from .modal_image_lists import ImageList
 from utils import translater
 
 
@@ -41,6 +42,7 @@ class ModalTab(widgets.QFrame):
             self.on_select(self)
         
 class Modal(widgets.QWidget):
+    icons_changed = core.pyqtSignal()
     city_deleted = core.pyqtSignal(str)
     city_saved = core.pyqtSignal(str)
     def __init__(self, parent=None, on_tab_selected=None, settings=None):
@@ -50,7 +52,7 @@ class Modal(widgets.QWidget):
         self.setAttribute(core.Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet("""
             QWidget {
-                background-color: rgba(35, 35, 35);
+                background-color: rgba(35, 35, 35, 255);
             }
         """)
         
@@ -185,9 +187,9 @@ class Modal(widgets.QWidget):
             self.content_layout.addWidget(self.right_modal_frame, alignment=core.Qt.AlignmentFlag.AlignLeft)
         
         elif tab_name == translater("modal", "tab_images"):
-            self.right_modal_frame = widgets.QLabel(translater("modal", "tab_images_wip"), self.content)
-            self.right_modal_frame.setStyleSheet("color: white; font-size: 16px;")
-            self.right_modal_frame.setFixedSize(544, 578)
+            self.right_modal_frame = ImageList(parent=self.content, settings=self.settings)
+            self.content_layout.addWidget(self.right_modal_frame, alignment=core.Qt.AlignmentFlag.AlignLeft)
+            self.right_modal_frame.icons_changed.connect(self.icons_changed)
         
         else:
             self.right_modal_frame = widgets.QWidget(self.content)

@@ -11,6 +11,7 @@ class TopFrameWidget(widgets.QFrame):
     city_deleted = core.pyqtSignal(str)
     city_saved = core.pyqtSignal(str)
     modal_created = core.pyqtSignal(object)
+    icons_changed = core.pyqtSignal()
     def __init__(self, parent, settings=None, modal=None):
         super().__init__(parent)
         self.setStyleSheet("background: transparent; border: none;")
@@ -116,11 +117,15 @@ class TopFrameWidget(widgets.QFrame):
             self._modal.city_deleted.connect(self.city_deleted)
             self._modal.city_saved.connect(self.city_saved)
             self.modal_created.emit(self._modal)
+            self._modal.icons_changed.connect(self._on_icons_changed)
     
         if self._modal.isVisible():
             self._modal.close()
         else:
             self._modal.show_below_button(self.settings_button)
+            
+    def _on_icons_changed(self):
+        self.icons_changed.emit()
 
     def reposition_dropdown(self):
         if self.cities_list_widget == None:
@@ -157,7 +162,7 @@ class TopFrameWidget(widgets.QFrame):
         
         placeholder = widgets.QListWidgetItem(translater("top_frame", "search_results"))
         placeholder.setForeground(gui.QColor(255, 255, 255, 204))
-        font = gui.QFont("Roboto", 12, 400)
+        font = gui.QFont("Roboto", 12, gui.QFont.Weight.Normal)
         placeholder.setFont(font)
         placeholder.setFlags(core.Qt.ItemFlag.NoItemFlags)
         self.cities_list_widget.addItem(placeholder)

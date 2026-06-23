@@ -12,16 +12,14 @@ DEFAULT_CITIES = ["Dnipro", "Bratislava"]
 
 
 class LeftContainer(widgets.QFrame):
-    def __init__(self, parent, on_city_selected=None, settings= None):
+    theme_changed = core.pyqtSignal(bool)
+    def __init__(self, parent, on_city_selected=None, settings= None, app_settings=None):
         super().__init__(parent)
 
         self.setFixedWidth(370)
         self.setStyleSheet("""
                 background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2);
-                border-top-left-radius: 0px;
-                border-top-right-radius: 0px;
-                border-bottom-left-radius: 10px;
-                border-bottom-right-radius: 0px;
+                border-radius: 0px;
                 """)
 
         self.selected_card = None
@@ -30,6 +28,8 @@ class LeftContainer(widgets.QFrame):
 
         # QSettings — зберігає міста між запусками
         self.settings = settings or core.QSettings("MyApp", "WeatherApp")
+        self.app_settings = app_settings or core.QSettings("MyApp", "settings")
+        
         
         # Временно — очистить кривые данные
         raw = self.settings.value("cities", None)
@@ -56,6 +56,11 @@ class LeftContainer(widgets.QFrame):
         theme_button.setIcon(gui.QIcon("media/title_bar/Dark_theme_button.svg"))
         theme_button.clicked.connect(self._icon_change)
         self.theme_button = theme_button
+        
+        is_dark = self.app_settings.value("theme", "light") == "dark"
+        self.BUTTON_TOOGLE = is_dark
+        icon = "media/title_bar/Light_theme_button.svg" if is_dark else "media/title_bar/Dark_theme_button.svg"
+        self.theme_button.setIcon(gui.QIcon(icon))
 
         scroll_area = widgets.QScrollArea(parent=self)
         left_container_layout.addWidget(scroll_area)
@@ -73,7 +78,6 @@ class LeftContainer(widgets.QFrame):
         self.scroll_layout.setContentsMargins(0, 0, 0, 0)
         self.scroll_frame.setLayout(self.scroll_layout)
 
-        # Завантажуємо міста: збережені або дефолтні
         saved_cities = self.settings.value("cities", None)
         if saved_cities is None:
             saved_cities = DEFAULT_CITIES
@@ -91,6 +95,11 @@ class LeftContainer(widgets.QFrame):
                 api_name = entry.get("api_name", "")
                 display_name = translate_city_name(api_name)
             self._add_card(api_name, display_name=display_name)
+        
+        is_dark = self.settings.value("theme", "light") == "dark"
+        self.BUTTON_TOOGLE = is_dark
+        icon = "media/title_bar/Light_theme_button.svg" if is_dark else "media/title_bar/Dark_theme_button.svg"
+        self.theme_button.setIcon(gui.QIcon(icon))
             
     def remove_city_card(self, city_name: str):
         for i in range(self.scroll_layout.count()):
@@ -119,12 +128,11 @@ class LeftContainer(widgets.QFrame):
             self.settings.setValue("cities", json.dumps(current_cities))
 
     def _icon_change(self):
-        if self.BUTTON_TOOGLE:
-            self.theme_button.setIcon(gui.QIcon("media/title_bar/Dark_theme_button.svg"))
-            self.BUTTON_TOOGLE = False
-        else:
-            self.theme_button.setIcon(gui.QIcon("media/title_bar/Light_theme_button.svg"))
-            self.BUTTON_TOOGLE = True
+        self.BUTTON_TOOGLE = not self.BUTTON_TOOGLE
+        icon = "media/title_bar/Light_theme_button.svg" if self.BUTTON_TOOGLE else "media/title_bar/Dark_theme_button.svg"
+        self.theme_button.setIcon(gui.QIcon(icon))
+        self.app_settings.setValue("theme", "dark" if self.BUTTON_TOOGLE else "light")
+        self.theme_changed.emit(self.BUTTON_TOOGLE)
 
     def _on_card_select(self, city_name, card):
         if self.selected_card and self.selected_card is not card:
@@ -153,7 +161,7 @@ class LeftContainer(widgets.QFrame):
         for i in range(self.scroll_layout.count()):
             widget = self.scroll_layout.itemAt(i).widget()
             if widget and hasattr(widget, 'city_name') and widget.city_name == city_name:
-                return  # карточка уже есть в UI
+                return
 
         response = request_sender(city_name)
         if str(response.get("cod")) == "404":
@@ -176,3 +184,17 @@ class LeftContainer(widgets.QFrame):
         if city_name not in current_cities:
             current_cities.append(city_name)
             self.settings.setValue("cities", json.dumps(current_cities))
+    
+    def set_theme(self, dark: bool):
+        if dark:
+            self.setStyleSheet("""
+                background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
+                    stop:0 #4A4A4A, stop:1 #5DADE2);
+                border-bottom-left-radius: 10px;
+            """)
+        else:
+            self.setStyleSheet("""
+                background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
+                    stop:0 #808080, stop:1 #5DADE2);
+                border-bottom-left-radius: 10px;
+            """)

@@ -417,10 +417,13 @@ class CityFinder(widgets.QFrame):
         # Заголовок
         search_title = widgets.QLabel(translater("modal_city_finder", "search_city_title"))
         search_title.setStyleSheet("""
-            font-size: 18px; font-weight: 400;
-            margin-bottom: 8px; color: white; font-family: Roboto;
+            font-size: 18px;
+            font-weight: 400;
+            color: white;
+            font-family: Roboto;
         """)
         root_layout.addWidget(search_title, alignment=core.Qt.AlignmentFlag.AlignTop | core.Qt.AlignmentFlag.AlignLeft)
+        root_layout.addSpacing(8)
 
         # Средний фрейм
         middle_frame = widgets.QFrame(self)
@@ -500,9 +503,12 @@ class CityFinder(widgets.QFrame):
         # Секция "Додані міста"
         added_title = widgets.QLabel(translater("modal_city_finder", "added_cities"))
         added_title.setStyleSheet("""
-            font-size: 18px; font-weight: 400;
-            margin-top: 12px; color: white; font-family: Roboto;
+            font-size: 18px;
+            font-weight: 400;
+            color: white;
+            font-family: Roboto;
         """)
+        root_layout.addSpacing(12) 
         root_layout.addWidget(added_title, alignment=core.Qt.AlignmentFlag.AlignLeft)
 
         self.added_cities = AddedCitiesWidget(self)

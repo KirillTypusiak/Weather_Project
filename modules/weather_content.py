@@ -67,8 +67,8 @@ class Weather_Content(widgets.QFrame):
                 """font-family: Roboto; 
                 font-size: 10px; 
                 font-weight: 300; 
-                color: white
-                background: transparent
+                color: white;
+                background: transparent;
             """)
             
             label3 = widgets.QLabel(left_card, text = str(weather_translater(response["weather"][0]["main"])))
@@ -78,7 +78,7 @@ class Weather_Content(widgets.QFrame):
                 font-size: 10px;
                 font-weight: 300;
                 color: white;
-                background: transparent
+                background: transparent;
             """)
             
             left_card_layout.addWidget(label1)
@@ -108,7 +108,7 @@ class Weather_Content(widgets.QFrame):
                 font-size: 42px;
                 font-weight: 400;
                 color: white;
-                background: transparent
+                background: transparent;
             """)
 
 
@@ -119,7 +119,7 @@ class Weather_Content(widgets.QFrame):
                 font-size: 16px;
                 font-weight: 500;
                 color: white;
-                background: transparent                
+                background: transparent;             
             """)
             
             right_card_layout.setContentsMargins(0,0,0,0)

@@ -32,8 +32,8 @@ This project was created as a practical exercise in building a real desktop appl
 | Role | Name | GitHub |
 |------|------|--------|
 | Team Lead / Lead Developer | Kyrylo Typusiak | [@KirillTypusiak](https://github.com/KirillTypusiak) |
-| Developer | Maksym Gergel | [@MaksymGergel](https://github.com/MaksymGergel/-Weather_Project) |
-| Developer | Yehor Voitov | *(link)* |
+| Developer | Maksym Gergel | [@MaksymGergel](https://github.com/MaksymGergel) |
+| Developer | Yehor Voitov | [@NoMemni](https://github.com/NoMemni) |
 
 ---
 
@@ -192,8 +192,8 @@ Working on this project gave the team hands-on experience with:
 | Роль | Ім'я | GitHub |
 |------|------|--------|
 | Тімлід / Головний розробник | Кирило Типусяк | [@KirillTypusiak](https://github.com/KirillTypusiak) |
-| Розробник | Максим Гергель | [@MaksymGergel](https://github.com/MaksymGergel/-Weather_Project) |
-| Розробник | Єгор Войтов | *(посилання)* |
+| Розробник | Максим Гергель | [@MaksymGergel](https://github.com/MaksymGergel) |
+| Розробник | Єгор Войтов | [@NoMemni](https://github.com/NoMemni) |
 
 ---
 

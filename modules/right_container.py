@@ -16,20 +16,28 @@ class RightContainer(widgets.QFrame):
     city_selected = core.pyqtSignal(str)
     city_deleted = core.pyqtSignal(str)
     city_saved = core.pyqtSignal(str)
-    def __init__(self, parent, city_name, settings=None):
+    def __init__(self, parent, city_name, settings: core.QSettings = None):
         super().__init__(parent)
         
         self.settings = settings
+        
+        defaults = {
+            "Clear": "media/Sun.png",
+            "Clouds": "media/Cloudy.png",
+            "Rain": "media/Rainy.png",
+            "Snow": "media/Snowy.png",
+            "Thunderstorm": "media/Thunderstorm.png",
+        }
+        for key, val in defaults.items():
+            if not settings.contains(key):
+                settings.setValue(key, val)
+        
         self._modal = None
         self.city_name = city_name
         self.setMinimumWidth(830)
         self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
         self.setStyleSheet("""
                         background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA);
-                        border-top-left-radius: 0px;
-                        border-top-right-radius: 0px;
-                        border-bottom-left-radius: 0px;
-                        border-bottom-right-radius: 10px;
                         """)
 
         self.WEATHER_CONTAINER_LAYOUT = widgets.QVBoxLayout(self)
@@ -47,6 +55,14 @@ class RightContainer(widgets.QFrame):
         self.build_empty_ui()
         
     def build_empty_ui(self):
+        self.clock_timer.stop()
+    
+        self.time_label = None
+        self.date_label = None
+        self.day_label = None
+        
+        self.clear_layout(self.WEATHER_CONTAINER_LAYOUT)
+        
         self.clear_layout(self.WEATHER_CONTAINER_LAYOUT)
         self.TOP_FRAME = TopFrameWidget(parent=self, settings=self.settings, modal=self._modal)
         self.TOP_FRAME.city_selected.connect(self.city_selected)
@@ -54,6 +70,7 @@ class RightContainer(widgets.QFrame):
         self.TOP_FRAME.city_saved.connect(self.city_saved)
         self.TOP_FRAME.modal_created.connect(self._on_modal_created)
         self.WEATHER_CONTAINER_LAYOUT.addWidget(self.TOP_FRAME)
+        self.TOP_FRAME.icons_changed.connect(self._on_icons_changed_rebuild)
         
         self.dropdown = widgets.QListWidget(self)
         self.dropdown.setVerticalScrollBarPolicy(core.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -94,17 +111,26 @@ class RightContainer(widgets.QFrame):
         return utc_now.astimezone(tz)
 
     def update_clock(self):
-        if hasattr(self, 'time_label'):
-            city_now = self.city_datetime()
-            self.time_label.setText(city_now.strftime("%H:%M"))
-        if hasattr(self, 'date_label'):
-            city_now = self.city_datetime()
-            self.date_label.setText(city_now.strftime("%d.%m.%Y"))
-        if hasattr(self, 'day_label'):
-            city_now = self.city_datetime()
-            self.day_label.setText(self.DAYS[city_now.weekday()])
+        try:
+            if hasattr(self, 'time_label'):
+                city_now = self.city_datetime()
+                self.time_label.setText(city_now.strftime("%H:%M"))
+            if hasattr(self, 'date_label'):
+                city_now = self.city_datetime()
+                self.date_label.setText(city_now.strftime("%d.%m.%Y"))
+            if hasattr(self, 'day_label'):
+                city_now = self.city_datetime()
+                self.day_label.setText(self.DAYS[city_now.weekday()])
+        except RuntimeError:
+            self.clock_timer.stop()
 
     def update_city(self, city_name, display_name=None):
+        self.clock_timer.stop()
+    
+        self.time_label = None
+        self.date_label = None  
+        self.day_label = None
+        
         self.city_name = city_name
         self.display_name = display_name or city_name
         self.clear_layout(self.WEATHER_CONTAINER_LAYOUT)
@@ -119,7 +145,30 @@ class RightContainer(widgets.QFrame):
         self._search_callback = callback
 
     def _on_modal_created(self, modal):
+        if self._modal is modal:
+            return
         self._modal = modal
+        modal.icons_changed.connect(self._on_icons_changed_rebuild)
+    
+    def _on_icons_changed_rebuild(self):
+        if self.city_name:
+            self.update_city(self.city_name, getattr(self, 'display_name', self.city_name))
+        else:
+            self.build_empty_ui()
+    
+    def set_theme(self, dark: bool):
+        if dark:
+            self.setStyleSheet("""
+                background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
+                    stop:0 #4A4A4A, stop:1 #5DADE2);
+                border-bottom-right-radius: 10px;
+            """)
+        else:
+            self.setStyleSheet("""
+                background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
+                    stop:0 #FFDF56, stop:1 #87CEFA);
+                border-bottom-right-radius: 10px;
+            """)
     
     def build_ui(self, response):
         
@@ -128,6 +177,7 @@ class RightContainer(widgets.QFrame):
         self.TOP_FRAME.city_deleted.connect(self.city_deleted)
         self.TOP_FRAME.city_saved.connect(self.city_saved)
         self.TOP_FRAME.modal_created.connect(self._on_modal_created)
+        self.TOP_FRAME.icons_changed.connect(self._on_icons_changed_rebuild)
         
         
         self.WEATHER_CONTAINER_LAYOUT.addWidget(self.TOP_FRAME)
@@ -211,7 +261,6 @@ class RightContainer(widgets.QFrame):
                                     font-family: Roboto;
                                     font-size: 44px;
                                     font-weight: 500;
-                                    line-height: 100%;
                                     border: none;
                                     background: transparent;
                                     """)
@@ -234,16 +283,8 @@ class RightContainer(widgets.QFrame):
             weather_widget_layout.addWidget(icon_label)
             icon_path = None
 
-            if response["weather"][0]["main"] == "Clear":
-                icon_path = "media/Sun.png"
-            elif response["weather"][0]["main"] == "Thunderstorm":
-                icon_path = "media/Thunderstorm.png"
-            elif response["weather"][0]["main"] == "Clouds":
-                icon_path = "media/Cloudy.png"
-            elif response["weather"][0]["main"] == "Rain":
-                icon_path = "media/Rainy.png"
-            elif response["weather"][0]["main"] == "Snow":
-                icon_path = "media/Snowy.png"
+            weather_main = response["weather"][0]["main"]
+            icon_path = self.settings.value(weather_main)
 
             if icon_path:
                 pixmap = gui.QPixmap(icon_path)
@@ -256,10 +297,8 @@ class RightContainer(widgets.QFrame):
                                     font-family: Roboto;
                                     font-size: 74px;
                                     font-weight: 500;
-                                    line-height: 100%;
                                     border: none;
                                     background: transparent;
-                                    horizontal-align: center;
                                     """)
             weather_widget_layout.addWidget(temp_label)
 
@@ -269,7 +308,6 @@ class RightContainer(widgets.QFrame):
                                     font-family: Roboto;
                                     font-size: 24px;
                                     font-weight: 500;
-                                    line-height: 100%;
                                     border: none;
                                     background: transparent;
                                     """)
@@ -281,7 +319,6 @@ class RightContainer(widgets.QFrame):
                                     font-family: Roboto;
                                     font-size: 16px;
                                     font-weight: 500;
-                                    line-height: 100%;
                                     border: none;
                                     background: transparent;
                                     color: rgba(255,255,255,0.8);
@@ -363,10 +400,11 @@ class RightContainer(widgets.QFrame):
             """)
         right_label_layout.addWidget(self.date_label)
 
+#1
         clock_frame = widgets.QFrame(parent = right_center_container)
         clock_frame.setFixedSize(168, 168)
-        clock_frame.setStyleSheet("background: transparent; border: none;")
-        right_center_container_layout.addWidget(clock_frame, alignment = core.Qt.AlignmentFlag.AlignHCenter)
+        clock_frame.setStyleSheet("background: transparent; border: None;")
+        right_center_container_layout.addWidget(clock_frame, alignment = core.Qt.AlignmentFlag.AlignTop | core.Qt.AlignmentFlag.AlignHCenter)
 
         clock_frame_layout = widgets.QStackedLayout(clock_frame)
         clock_frame_layout.setStackingMode(widgets.QStackedLayout.StackingMode.StackAll)
@@ -385,13 +423,13 @@ class RightContainer(widgets.QFrame):
         clock_frame_layout.addWidget(self.time_label)
 
         clock_icon = gui.QIcon("media/Clock.png")
-        pixmap = gui.QPixmap(clock_icon.pixmap(core.QSize(168, 168)))
+        pixmap = gui.QPixmap(clock_icon.pixmap(core.QSize(200, 200)))
         clock_label = widgets.QLabel(parent = clock_frame)
         clock_label.setPixmap(pixmap)
         clock_label.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
         clock_label.setStyleSheet("background: transparent; border: none;")
         clock_frame_layout.addWidget(clock_label)
-
+#
         self.FOOTER = widgets.QFrame(parent = self)
         self.FOOTER.setMinimumHeight(364)
         self.FOOTER.setStyleSheet("background: transparent")

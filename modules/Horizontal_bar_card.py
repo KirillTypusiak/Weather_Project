@@ -46,7 +46,6 @@ class HourlyCard(widgets.QFrame):
             color: rgba(255,255,255,1);
             background: transparent;
             border: none;
-            line-height: 100%;
         """)
         layout.addWidget(time_label)
 
@@ -73,7 +72,6 @@ class HourlyCard(widgets.QFrame):
             color: white;
             background: transparent;
             border: none;
-            line-height: 100%;
     
         """)
         layout.addWidget(temp_label)
@@ -104,7 +102,6 @@ class SunCard(widgets.QFrame):
             color: white;
             background: transparent;
             border: none;
-            line-height: 100%;
         """)
         layout.addWidget(time_label)
 
@@ -134,13 +131,10 @@ class SunCard(widgets.QFrame):
             color: rgba(255, 255, 255, 1);
             background: transparent;
             border: none;
-            line-height: 100%;
         """)
         layout.addWidget(label)
         
-        
-
-
+       
 class HourlyForecastWidget(widgets.QFrame):
     def __init__(self, parent, city_name: str, timezone_offset: int = 0):
         super().__init__(parent)

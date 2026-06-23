@@ -63,10 +63,24 @@ TRANSLATIONS = {
     },
     "modal_size_change": {
         "uk": {
-            "title": "Оберіть розмір додатку"
+            "title": "Оберіть розмір додатку",
+            "accept_button": "Зберегти"
         },
         "en": {
-            "title": "Choose the app size"
+            "title": "Choose the app size",
+            "accept_button": "Save"
+        }
+    },
+    "modal_image_lists": {
+        "uk": {
+            "title": "Списки зображень",
+            "add_button": " Додати",
+            "accept_button": "Зберегти"
+        },
+        "en": {
+            "title": "Image lists",
+            "add_button": " Add",
+            "accept_button": "Save"
         }
     },
     "top_frame": {

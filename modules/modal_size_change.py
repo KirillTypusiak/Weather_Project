@@ -16,9 +16,6 @@ RADIO_BUTTON_STYLE = """
     QRadioButton::indicator:unchecked {
         image: url(media/Round.png);
     }
-    QRadioButton::indicator:unchecked:hover {
-        opacity: 0.8;
-    }
     QRadioButton::indicator:checked {
         image: url(media/Radio.png);
     }
@@ -100,7 +97,7 @@ class ModalSizeChange(widgets.QFrame):
         layout.addWidget(button4)
         layout.addSpacing(5)
         
-        self.accept_button = widgets.QPushButton(parent = self, text = "Зберегти")
+        self.accept_button = widgets.QPushButton(parent = self, text = translater("modal_size_change", "accept_button"))
         self.accept_button.setFixedSize(130, 38)
         self.accept_button.setDisabled(True)
         self.accept_button.setStyleSheet(SAVE_BTN_INACTIVE)
