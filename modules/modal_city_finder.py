@@ -6,7 +6,7 @@ import folium
 import io
 import json
 
-from utils import request_cities
+from utils import request_cities, request_sender
 from utils import translater
 from utils import get_english_city_name
 from utils import translate_city_name
@@ -342,6 +342,7 @@ class AddedCitiesWidget(widgets.QScrollArea):
         card = self._cards.pop(city_name, None)
         if card:
             card.setParent(None)
+        
         self.city_deleted.emit(city_name)
 
     def city_names(self) -> list[str]:
@@ -587,8 +588,11 @@ class CityFinder(widgets.QFrame):
             return
         api_name = get_english_city_name(self._selected_city)
         display_name = self._selected_city
-        self.added_cities.add_city(api_name, display_name)  # ← было self._selected_city
+        self.added_cities.add_city(api_name, display_name)  # было self._selected_city
         self._persist_cities()
+        response = request_sender(self._selected_city)
+        # if int(response.get("cod")) >= 400 :
+        #     return
         self.city_saved.emit(api_name)
         self.country_field.clear()
         self.city_field.clear()
@@ -623,6 +627,7 @@ class CityFinder(widgets.QFrame):
             for api_name, display_name in self.added_cities.city_pairs()
         ]
         self._settings.setValue("cities", json.dumps(self.added_cities.city_names()))
+        
 
     def _restore_cities(self):
         raw = self._settings.value("cities", "[]")

@@ -14,7 +14,7 @@ class MainWindow(widgets.QMainWindow):
 
         self.setWindowFlags(core.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(core.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setStyleSheet("background: transparent; border: none;")
+        self.setStyleSheet("background: transparent; border: none; border-radius: 10px")
         
         self.settings = core.QSettings("MyApp", "settings")
         text: str = self.settings.value("window_size")
@@ -44,8 +44,7 @@ class MainWindow(widgets.QMainWindow):
         content_container.setStyleSheet(
             "background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #4a90e2, stop:1 #1c3c72);"
             "border: none;"
-            "border-bottom-left-radius: 10px;"
-            "border-bottom-right-radius: 10px"
+            
         )
         self.setCentralWidget(content_container)
 

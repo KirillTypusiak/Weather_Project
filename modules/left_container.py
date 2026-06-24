@@ -19,7 +19,9 @@ class LeftContainer(widgets.QFrame):
         self.setFixedWidth(370)
         self.setStyleSheet("""
                 background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #808080, stop:1 #5DADE2);
-                border-radius: 0px;
+                "border-bottom-left-radius: 10px;"
+                "border-bottom-right-radius: 0"
+                
                 """)
 
         self.selected_card = None
@@ -28,6 +30,7 @@ class LeftContainer(widgets.QFrame):
 
         # QSettings — зберігає міста між запусками
         self.settings = settings or core.QSettings("MyApp", "WeatherApp")
+        print(self.settings.value("cities"))
         self.app_settings = app_settings or core.QSettings("MyApp", "settings")
         
         
@@ -163,9 +166,10 @@ class LeftContainer(widgets.QFrame):
             if widget and hasattr(widget, 'city_name') and widget.city_name == city_name:
                 return
 
-        response = request_sender(city_name)
-        if str(response.get("cod")) == "404":
-            return
+        # response = request_sender(city_name)
+        # if int(response.get("cod")) >= 400 :
+        #     return
+        
 
         self._add_card(city_name, display_name = translate_city_name(city_name))
 
@@ -191,10 +195,16 @@ class LeftContainer(widgets.QFrame):
                 background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
                     stop:0 #4A4A4A, stop:1 #5DADE2);
                 border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 0px;
+                border-top-left-radius: 0px;
+                border-top-right-radius: 0px;
             """)
         else:
             self.setStyleSheet("""
                 background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
                     stop:0 #808080, stop:1 #5DADE2);
                 border-bottom-left-radius: 10px;
+                border-bottom-right-radius: 0px;
+                border-top-left-radius: 0px;
+                border-top-right-radius: 0px;
             """)

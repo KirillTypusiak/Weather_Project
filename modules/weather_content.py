@@ -50,6 +50,8 @@ class Weather_Content(widgets.QFrame):
         left_card.setLayout(left_card_layout)
         
         if str(response.get("cod", "")) == "200" or response.get("cod") == 200:
+            if len(name_to_show) > 12:
+                name_to_show = name_to_show[:12] + "..."
             label1 = widgets.QLabel(left_card, text = name_to_show)
             label1.setStyleSheet("""
                 font-family: Roboto;

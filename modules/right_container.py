@@ -38,6 +38,7 @@ class RightContainer(widgets.QFrame):
         self.setSizePolicy(widgets.QSizePolicy.Policy.Expanding, widgets.QSizePolicy.Policy.Expanding)
         self.setStyleSheet("""
                         background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1, stop:0 #FFDF56, stop:1 #87CEFA);
+                        
                         """)
 
         self.WEATHER_CONTAINER_LAYOUT = widgets.QVBoxLayout(self)
@@ -162,12 +163,18 @@ class RightContainer(widgets.QFrame):
                 background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
                     stop:0 #4A4A4A, stop:1 #5DADE2);
                 border-bottom-right-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-left-radius: 0px;
+                border-top-right-radius: 0px;
             """)
         else:
             self.setStyleSheet("""
                 background-color: qlineargradient(x1:1, y1:0, x2:0, y2:1,
                     stop:0 #FFDF56, stop:1 #87CEFA);
                 border-bottom-right-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-top-left-radius: 0px;
+                border-top-right-radius: 0px;
             """)
     
     def build_ui(self, response):

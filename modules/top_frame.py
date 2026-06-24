@@ -3,7 +3,7 @@ import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
 
 from modules.modal import Modal
-from utils import request_cities
+from utils import request_cities, request_sender
 from utils import translater
 
 class TopFrameWidget(widgets.QFrame):

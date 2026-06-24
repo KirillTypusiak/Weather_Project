@@ -45,6 +45,7 @@ class Header(widgets.QFrame):
         max_button.setIcon(gui.QIcon("media/title_bar/Maximize_Button_Hover.svg"))
         max_button.setStyleSheet("border:none; background: transparent;")
         left_layout.addWidget(max_button)
+        self.set_theme(self._dark)
 
         def toggle_window():
             if self.window().isMaximized():
@@ -57,22 +58,41 @@ class Header(widgets.QFrame):
         self._dark = dark
         self.update()  # перемалювати
 
-    def paintEvent(self, event):
-        painter = gui.QPainter(self)
-        painter.setRenderHint(gui.QPainter.RenderHint.Antialiasing)
+    # def paintEvent(self, event):
+    #     painter = gui.QPainter(self)
+    #     painter.setRenderHint(gui.QPainter.RenderHint.Antialiasing)
 
-        rect = self.rect()
-        gradient = gui.QLinearGradient(rect.width(), 0, 0, rect.height())
+    #     rect = self.rect()
+    #     gradient = gui.QLinearGradient(rect.width(), 0, 0, rect.height())
 
-        if self._dark:
-            gradient.setColorAt(0, gui.QColor("#4A4A4A"))
-            gradient.setColorAt(1, gui.QColor("#5DADE2"))
-        else:
-            gradient.setColorAt(0, gui.QColor("#efd95f"))
-            gradient.setColorAt(1, gui.QColor("#5DADE2"))
+    #     if self._dark:
+    #         gradient.setColorAt(0, gui.QColor("#4A4A4A"))
+    #         gradient.setColorAt(1, gui.QColor("#5DADE2"))
+    #     else:
+    #         gradient.setColorAt(0, gui.QColor("#efd95f"))
+    #         gradient.setColorAt(1, gui.QColor("#5DADE2"))
             
-        painter.fillRect(rect, gradient)
-        painter.end()
+    #     painter.fillRect(rect, gradient)
+    #     painter.end()
+    def set_theme(self, dark: bool):
+        if dark:
+            self.setStyleSheet("""
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #5DADE2, stop:1 #4A4A4A);
+                border-top-right-radius: 10px;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-bottom-right-radius: 0px;
+            """)
+        else:
+            self.setStyleSheet("""
+                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #87CEFA, stop:1 #FFDF56);
+                border-top-right-radius: 10px;
+                border-top-left-radius: 10px;
+                border-bottom-left-radius: 0px;
+                border-bottom-right-radius: 0px;
+            """)
 
     def mousePressEvent(self, event):
         if event.button() == core.Qt.MouseButton.LeftButton:
