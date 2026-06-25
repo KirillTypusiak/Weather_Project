@@ -3,7 +3,8 @@ import PyQt6.QtWidgets as widgets
 import PyQt6.QtGui as gui
 
 from utils import translater
-from modules import window
+from modules import window, application
+
 
 RADIO_BUTTON_STYLE = """
     QRadioButton {
@@ -122,5 +123,13 @@ class ModalSizeChange(widgets.QFrame):
         width, height = text.split("x")
         width = int(width)
         height = int(height)
+        size = application.primaryScreen().size()
+        screen_width = size.width()
+        screen_height = size.height()
+        width = min(width, screen_width)
+        height = min(height, screen_height)
         self.settings.setValue("window_size", text)
         window.main_window.resize(width, height)
+        center_x = (screen_width // 2) - (width // 2)
+        center_y = (screen_height // 2) - (height // 2)
+        window.main_window.move(center_x, center_y)

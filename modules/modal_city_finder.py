@@ -590,9 +590,9 @@ class CityFinder(widgets.QFrame):
         display_name = self._selected_city
         self.added_cities.add_city(api_name, display_name)  # было self._selected_city
         self._persist_cities()
-        response = request_sender(self._selected_city)
-        # if int(response.get("cod")) >= 400 :
-        #     return
+        response = request_sender(api_name)
+        if int(response.get("cod")) >= 400 :
+            return
         self.city_saved.emit(api_name)
         self.country_field.clear()
         self.city_field.clear()

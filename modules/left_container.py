@@ -30,7 +30,7 @@ class LeftContainer(widgets.QFrame):
 
         # QSettings — зберігає міста між запусками
         self.settings = settings or core.QSettings("MyApp", "WeatherApp")
-        print(self.settings.value("cities"))
+        # print(self.settings.value("cities"))
         self.app_settings = app_settings or core.QSettings("MyApp", "settings")
         
         

@@ -147,7 +147,9 @@ class LanguageSettings(widgets.QFrame):
         self.window_layout.setSpacing(50)
         self.window_layout.setAlignment(core.Qt.AlignmentFlag.AlignCenter)
         self.screen.hide()
-        self.screen.setFixedSize(400, 350)
+        x = self.width()//2
+        y = self.height()//4
+        self.screen.setGeometry(x, y, 400, 350)
         self.screen.setStyleSheet(
         """
             background-color: rgba(35, 35, 35, 1);
